@@ -1,0 +1,1 @@
+- offline mode for observation and update tools if no internet connectivity is present (a single json store of objects to be sent... or markdown files)

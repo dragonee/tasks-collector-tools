@@ -1,0 +1,29 @@
+# Tasks Collector Tools
+
+These tools add CLI support to the [Tasks Collector](https://github.com/dragonee/tasks-collector) application.
+
+## Journalling
+
+[$ make-readme -h 3 journal]
+
+## Observations
+
+[$ make-readme -h 3 observation]
+
+[$ make-readme -h 3 update]
+
+## Task management
+
+[$ make-readme -h 3 addtask]
+
+## Quests
+
+[$ make-readme -h 3 quest]
+
+## Tools for periodical reflections
+
+TODO: write up process on how to do a periodical reflection.
+
+[$ make-readme -h 3 observationdump]
+
+[$ make-readme -h 3 boardmd]
