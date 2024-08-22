@@ -4,7 +4,7 @@ Usage:
     addtask [options] TEXT
 
 Options:
-    --thread THREAD  Use specific thread [default: Daily].
+    --thread THREAD  Use specific thread [default: Inbox].
     -h, --help       Show this message.
     --version        Show version information.
 """
