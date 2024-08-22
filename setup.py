@@ -13,7 +13,7 @@ setup(
     ],
     packages=('tasks_collector_tools', 'tasks_collector_tools.config'),
     package_dir={'': 'src'},
-    install_requires=['docopt', 'requests', 'python-slugify', 'pyyaml', 'colored'],
+    install_requires=['docopt', 'requests', 'python-slugify', 'pyyaml', 'colored', 'more-itertools'],
     python_requires='>=3',
     entry_points={
         'console_scripts': [

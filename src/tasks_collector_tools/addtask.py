@@ -11,7 +11,7 @@ Options:
 
 GOTOURL = """
 See more:
-- {url}/hello/world/
+- {url}/todo/
 """
 
 import json
@@ -21,10 +21,10 @@ from docopt import docopt
 import requests
 from requests.auth import HTTPBasicAuth
 
-
-from pathlib import Path
+from more_itertools import repeatfunc, consume
 
 from .config.tasks import TasksConfigFile
+
 
 def get_input_until(predicate, prompt=None):
     text = None
@@ -35,14 +35,10 @@ def get_input_until(predicate, prompt=None):
     return text
 
 
-def main():
-    arguments = docopt(__doc__, version='1.0.2')
-
-    config = TasksConfigFile()
-
+def run_single_task(config, thread, text):
     payload = {
-        'thread-name': arguments['--thread'],
-        'text': arguments['TEXT'] or get_input_until(bool, prompt="> "),
+        'thread-name': thread,
+        'text': text or get_input_until(bool, prompt="> "),
     }
 
     url = '{}/boards/append/'.format(config.url)
@@ -51,8 +47,6 @@ def main():
 
     if r.ok:
         print("Task added.")
-
-        print(GOTOURL.format(url=config.url).strip())
     else:
         try:
             print(json.dumps(r.json(), indent=4, sort_keys=True))
@@ -60,8 +54,23 @@ def main():
             print("HTTP {}\n{}".format(r.status_code, r.text))
 
 
+def main():
+    arguments = docopt(__doc__, version='1.0.3')
 
-        
-            
+    config = TasksConfigFile()
 
-            
+    text = arguments['TEXT'] or None
+    times = 1 if arguments['TEXT'] else None
+
+    try:
+        consume(repeatfunc(
+            run_single_task,
+            times,
+            config,
+            arguments['--thread'],
+            text,
+        ))
+    except KeyboardInterrupt:
+        print("Exiting...")
+
+    print(GOTOURL.format(url=config.url).strip())
