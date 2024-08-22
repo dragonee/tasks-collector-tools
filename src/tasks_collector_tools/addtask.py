@@ -1,7 +1,7 @@
 """Add a task.
 
 Usage: 
-    addtask [options] TEXT
+    addtask [options] [TEXT]
 
 Options:
     --thread THREAD  Use specific thread [default: Inbox].
@@ -14,15 +14,9 @@ See more:
 - {url}/hello/world/
 """
 
-import json, os, re, sys
+import json
 
 from docopt import docopt
-
-from datetime import datetime
-
-import tempfile
-
-import subprocess
 
 import requests
 from requests.auth import HTTPBasicAuth
@@ -32,15 +26,23 @@ from pathlib import Path
 
 from .config.tasks import TasksConfigFile
 
+def get_input_until(predicate, prompt=None):
+    text = None
+    
+    while text is None or not predicate(text):
+        text = input(prompt)
+    
+    return text
+
 
 def main():
-    arguments = docopt(__doc__, version='1.0.1')
+    arguments = docopt(__doc__, version='1.0.2')
 
     config = TasksConfigFile()
 
     payload = {
         'thread-name': arguments['--thread'],
-        'text': arguments['TEXT'],
+        'text': arguments['TEXT'] or get_input_until(bool, prompt="> "),
     }
 
     url = '{}/boards/append/'.format(config.url)
