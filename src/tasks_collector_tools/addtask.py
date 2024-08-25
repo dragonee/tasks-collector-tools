@@ -11,7 +11,7 @@ Options:
 
 GOTOURL = """
 See more:
-- {url}/todo/
+- {url}/todo/#/board/{name}
 """
 
 import json
@@ -73,4 +73,4 @@ def main():
     except KeyboardInterrupt:
         print("Exiting...")
 
-    print(GOTOURL.format(url=config.url).strip())
+    print(GOTOURL.format(url=config.url, name=arguments['--thread']).strip())
