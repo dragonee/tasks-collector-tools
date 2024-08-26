@@ -70,7 +70,7 @@ def main():
             arguments['--thread'],
             text,
         ))
-    except KeyboardInterrupt:
+    except (KeyboardInterrupt, EOFError):
         print("Exiting...")
 
     print(GOTOURL.format(url=config.url, name=arguments['--thread']).strip())
