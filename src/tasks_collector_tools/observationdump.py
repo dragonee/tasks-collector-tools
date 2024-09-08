@@ -4,8 +4,6 @@ Usage:
     observationdump [options] PATH
 
 Options:
-    --open           Get only open observations.
-    --closed         Get only closed observations.
     -d DATE_FROM, --from FROM  Dump from specific date.
     -D DATE_TO, --to DATE_TO   Dump to specific date.
     -f, --force      Overwrite existing files.
@@ -56,16 +54,6 @@ TEMPLATE = """
 
 """
 
-CLOSED_TEMPLATE = """
-> Closed on {date_closed}
-"""
-
-def closed(payload):
-    if not payload['date_closed']:
-        return ''
-    
-    return CLOSED_TEMPLATE.format(**payload).lstrip()
-
 def transform_dict(dct, **kwargs):
     dct_copy = dct.copy()
 
@@ -77,7 +65,7 @@ def transform_dict(dct, **kwargs):
 
 def template_from_payload(payload):
     def strip_field(value):
-        return value.replace('\r', '')
+        return value.replace('\r', '') if value is not None else ''
     
     new_payload = transform_dict(
         payload,
@@ -86,7 +74,7 @@ def template_from_payload(payload):
         approach=strip_field,
     )
 
-    return TEMPLATE.format(**new_payload).lstrip() + closed(payload)
+    return TEMPLATE.format(**new_payload).lstrip()
 
 
 def write_observation(observation, path, force=False):
@@ -132,12 +120,6 @@ def main():
         date_to = arguments['--to'] or datetime.today().strftime('%Y-%m-%d')
 
         filter_arg = f'?pub_date__gte={date_from}&pub_date__lte={date_to}'
-
-    if not single:
-        if arguments['--open']:
-            filter_arg += '&date_closed__isnull=true'
-        elif arguments['--closed']:
-            filter_arg += '&date_closed__isnull=false'
 
     url = '{}/observation-api/{}'.format(config.url, filter_arg)
 

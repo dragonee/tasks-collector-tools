@@ -54,16 +54,16 @@ Options:
 
 ## Task management
 
-### addtask (1.0.1)
+### addtask (1.0.3)
 
 ```
 Add a task.
 
 Usage: 
-    addtask [options] TEXT
+    addtask [options] [TEXT]
 
 Options:
-    --thread THREAD  Use specific thread [default: Daily].
+    --thread THREAD  Use specific thread [default: Inbox].
     -h, --help       Show this message.
     --version        Show version information.
 ```
@@ -96,8 +96,6 @@ Usage:
     observationdump [options] PATH
 
 Options:
-    --open           Get only open observations.
-    --closed         Get only closed observations.
     -d DATE_FROM, --from FROM  Dump from specific date.
     -D DATE_TO, --to DATE_TO   Dump to specific date.
     -f, --force      Overwrite existing files.
