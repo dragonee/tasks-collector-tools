@@ -93,9 +93,9 @@ def list_observations(config):
     r = requests.get(url, auth=HTTPBasicAuth(config.user, config.password))
 
     if r.ok:
-        json = r.json()
+        response = r.json()
 
-        for item in json['results']:
+        for item in response['results']:
             print("#{}: {}".format(
                 item['id'],
                 re.sub(r'\s+', ' ', item['situation'])[:70]
@@ -104,9 +104,6 @@ def list_observations(config):
     else:
         try:
             print(json.dumps(r.json(), indent=4, sort_keys=True))
-
-
-
         except json.decoder.JSONDecodeError:
             print("HTTP {}\n{}".format(r.status_code, r.text))
         

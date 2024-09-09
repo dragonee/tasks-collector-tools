@@ -87,7 +87,7 @@ Options:
 
 TODO: write up process on how to do a periodical reflection.
 
-### observationdump (1.0.3)
+### observationdump (1.1)
 
 ```
 Dump observations to markdown files.
@@ -99,7 +99,7 @@ Options:
     -d DATE_FROM, --from FROM  Dump from specific date.
     -D DATE_TO, --to DATE_TO   Dump to specific date.
     -f, --force      Overwrite existing files.
-    --pk ID          Dump object with specific ID.
+    --stream ID      Dump object with specific Event Stream ID.
     --year YEAR      Dump specific year.
     -h, --help       Show this message.
     --version        Show version information.
