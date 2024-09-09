@@ -34,6 +34,7 @@ from .config.tasks import TasksConfigFile
 
 from slugify import slugify
 
+from urllib.parse import urlencode
 
 TEMPLATE = """
 > Date: {pub_date}
@@ -76,6 +77,16 @@ def template_from_payload(payload):
 
     return TEMPLATE.format(**new_payload).lstrip()
 
+UPDATE_TEMPLATE = """
+# Comment: {published}
+
+{comment}
+
+"""
+
+def update_from_payload(update):
+    return UPDATE_TEMPLATE.format(**update).lstrip()
+
 
 def write_observation(observation, path, force=False):
     text = template_from_payload(observation)
@@ -92,6 +103,9 @@ def write_observation(observation, path, force=False):
 
     with open(path / filename, 'w') as f:
         f.write(text)
+
+        for update in observation['updates']:
+            f.write(update_from_payload(update))
     
     return filename
 
@@ -105,23 +119,25 @@ def main():
 
     single = False
 
-    filter_arg = ''
+    get_params = {
+        'features': 'updates',
+    }
 
     if arguments['--year']:
         year = arguments['--year']
-
-        filter_arg = f'?pub_date__gte={year}-01-01&pub_date__lte={year}-12-31'
+        get_params['pub_date__gte'] = f'{year}-01-01'
+        get_params['pub_date__lte'] = f'{year}-12-31'
     elif arguments['--pk']:
-        filter_arg = '{}/'.format(arguments['--pk'])
-
+        pk = arguments['--pk']
+        url_suffix = f'{pk}/'
         single = True
     elif arguments['--from']:
-        date_from = arguments['--from']
-        date_to = arguments['--to'] or datetime.today().strftime('%Y-%m-%d')
+        get_params['pub_date__gte'] = arguments['--from']
+        get_params['pub_date__lte'] = arguments['--to'] or datetime.today().strftime('%Y-%m-%d')
 
-        filter_arg = f'?pub_date__gte={date_from}&pub_date__lte={date_to}'
+    filter_arg = urlencode(get_params)
 
-    url = '{}/observation-api/{}'.format(config.url, filter_arg)
+    url = '{}/observation-api/{}?{}'.format(config.url, url_suffix, filter_arg)
 
     auth = HTTPBasicAuth(config.user, config.password)
 
