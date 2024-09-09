@@ -109,6 +109,40 @@ def write_observation(observation, path, force=False):
     
     return filename
 
+def params_from_arguments(arguments):
+    def _params_from_arguments(arguments):
+        if arguments['--year']:
+            year = arguments['--year']
+
+            return {
+                'pub_date__gte': f'{year}-01-01',
+                'pub_date__lte': f'{year}-12-31',
+            }
+
+        if arguments['--from']:
+            return {
+                'pub_date__gte': arguments['--from'],
+                'pub_date__lte': arguments['--to'] or datetime.today().strftime('%Y-%m-%d'),
+            }
+        
+        return {}
+    
+    params = _params_from_arguments(arguments)
+    params.update({
+        'features': 'updates',
+    })
+
+    return params
+
+
+def url_suffix_from_arguments(arguments):
+    pk = arguments['--pk']
+
+    if not pk:
+        return ''
+    
+    return f'{pk}/'
+
 
 def main():
     arguments = docopt(__doc__, version=VERSION)
@@ -117,27 +151,11 @@ def main():
 
     config = TasksConfigFile()
 
-    single = False
-
-    get_params = {
-        'features': 'updates',
-    }
-
-    if arguments['--year']:
-        year = arguments['--year']
-        get_params['pub_date__gte'] = f'{year}-01-01'
-        get_params['pub_date__lte'] = f'{year}-12-31'
-    elif arguments['--pk']:
-        pk = arguments['--pk']
-        url_suffix = f'{pk}/'
-        single = True
-    elif arguments['--from']:
-        get_params['pub_date__gte'] = arguments['--from']
-        get_params['pub_date__lte'] = arguments['--to'] or datetime.today().strftime('%Y-%m-%d')
-
-    filter_arg = urlencode(get_params)
-
-    url = '{}/observation-api/{}?{}'.format(config.url, url_suffix, filter_arg)
+    url = '{}/observation-api/{}?{}'.format(
+        config.url, 
+        url_suffix_from_arguments(arguments),
+        urlencode(params_from_arguments(arguments)),
+    )
 
     auth = HTTPBasicAuth(config.user, config.password)
 
