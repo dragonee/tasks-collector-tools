@@ -5,6 +5,7 @@ Usage:
 
 Options:
     -l, --list       List last couple of observations.
+    -n, --number N   With -l, show N observations [default: 10].
     -c, --chars N    With -l, show N chars of the situation [default: 70].
     --date DATE      Use specific date.
     -s, --save       Save as default for updates [default: False].
@@ -88,8 +89,8 @@ def add_stack_to_payload(payload, name, lines):
     payload[name.lower()] = ''.join(lines).strip()
         
 
-def list_observations(config, chars=70):
-    url = '{}/observation-api/'.format(config.url)
+def list_observations(config, chars=70, number=10):
+    url = '{}/observation-api/?page_size={}'.format(config.url, number)
 
     r = requests.get(url, auth=HTTPBasicAuth(config.user, config.password))
 
@@ -110,12 +111,16 @@ def list_observations(config, chars=70):
         
 
 def main():
-    arguments = docopt(__doc__, version='1.0.1')
+    arguments = docopt(__doc__, version='1.0.2')
 
     config = TasksConfigFile()
 
     if arguments['--list']:
-        list_observations(config, int(arguments['--chars']))
+        list_observations(
+            config,
+            int(arguments['--chars']),
+            int(arguments['--number'])
+        )
 
         return
 
