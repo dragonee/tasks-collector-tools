@@ -31,6 +31,7 @@ Usage:
 
 Options:
     -l, --list       List last couple of observations.
+    -c, --chars N    With -l, show N chars of the situation [default: 70].
     --date DATE      Use specific date.
     -s, --save       Save as default for updates [default: False].
     --thread THREAD  Use specific thread [default: big-picture].

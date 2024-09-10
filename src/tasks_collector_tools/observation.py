@@ -5,6 +5,7 @@ Usage:
 
 Options:
     -l, --list       List last couple of observations.
+    -c, --chars N    With -l, show N chars of the situation [default: 70].
     --date DATE      Use specific date.
     -s, --save       Save as default for updates [default: False].
     --thread THREAD  Use specific thread [default: big-picture].
@@ -87,7 +88,7 @@ def add_stack_to_payload(payload, name, lines):
     payload[name.lower()] = ''.join(lines).strip()
         
 
-def list_observations(config):
+def list_observations(config, chars=70):
     url = '{}/observation-api/'.format(config.url)
 
     r = requests.get(url, auth=HTTPBasicAuth(config.user, config.password))
@@ -98,7 +99,7 @@ def list_observations(config):
         for item in response['results']:
             print("#{}: {}".format(
                 item['id'],
-                re.sub(r'\s+', ' ', item['situation'])[:70]
+                re.sub(r'\s+', ' ', item['situation'])[:chars]
             ))
 
     else:
@@ -114,7 +115,7 @@ def main():
     config = TasksConfigFile()
 
     if arguments['--list']:
-        list_observations(config)
+        list_observations(config, int(arguments['--chars']))
 
         return
 
