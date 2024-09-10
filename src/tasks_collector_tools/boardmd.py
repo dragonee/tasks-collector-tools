@@ -47,7 +47,6 @@ def get_board_meta(response):
     return {
         'focus': board['focus'],
         'date_started': board['date_started'],
-        'date_closed': board['date_closed'],
         'id': board['id'],
     }
 
