@@ -5,8 +5,8 @@ Usage:
 
 Options:
     -l, --list       List last couple of observations.
-    -n, --number N   With -l, show N observations [default: 10].
-    -c, --chars N    With -l, show N chars of the situation [default: 70].
+    -n, --number N   With -l, show N observations [default: {observation_list_count}].
+    -c, --chars N    With -l, show N chars of the situation [default: {observation_list_characters}].
     --date DATE      Use specific date.
     -s, --save       Save as default for updates [default: False].
     --thread THREAD  Use specific thread [default: big-picture].
@@ -111,9 +111,12 @@ def list_observations(config, chars=70, number=10):
         
 
 def main():
-    arguments = docopt(__doc__, version='1.0.2')
-
     config = TasksConfigFile()
+
+    arguments = docopt(__doc__.format(
+        observation_list_count=config.observation_list_count,
+        observation_list_characters=config.observation_list_characters,
+    ), version='1.0.2')
 
     if arguments['--list']:
         list_observations(

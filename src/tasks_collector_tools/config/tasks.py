@@ -9,6 +9,9 @@ class TasksConfigFile:
     password = None
     quest_path = None
 
+    observation_list_count: int = 10
+    observation_list_characters: int = 70
+
     def __init__(self):
         self.reader = ConfigParser()
 
@@ -24,6 +27,8 @@ class TasksConfigFile:
             if quest_path:
                 self.quest_path = Path(quest_path).expanduser()
 
+            self.observation_list_count = self.reader.getint('Display', 'observation_list_count', fallback=self.observation_list_count)
+            self.observation_list_characters = self.reader.getint('Display', 'observation_list_characters', fallback=self.observation_list_characters)
         except KeyError:
             raise KeyError("Create ~/.tasks-collector.ini file with section [Tasks] containing url/user/password")
 
