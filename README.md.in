@@ -2,6 +2,10 @@
 
 These tools add CLI support to the [Tasks Collector](https://github.com/dragonee/tasks-collector) application.
 
+## All-in-one
+
+[$ make-readme -h 3 tasks]
+
 ## Journalling
 
 [$ make-readme -h 3 journal]

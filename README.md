@@ -2,6 +2,32 @@
 
 These tools add CLI support to the [Tasks Collector](https://github.com/dragonee/tasks-collector) application.
 
+## All-in-one
+
+### tasks (1.0)
+
+```
+Connect to the Tasks Collector.
+
+Usage: 
+    tasks [options]
+
+Options:
+    --thread THREAD  Use specific thread [default: Inbox].
+    -h, --help       Show this message.
+    --version        Show version information.
+
+Available commands:
+  observation
+  olist
+  quest
+  journal
+  update
+  help
+
+Quit by pressing Ctrl+D or Ctrl+C.
+```
+
 ## Journalling
 
 ### journal (1.1)
@@ -21,7 +47,7 @@ Options:
 
 ## Observations
 
-### observation (1.0.1)
+### observation (1.0.2)
 
 ```
 Add an observation.
@@ -31,7 +57,8 @@ Usage:
 
 Options:
     -l, --list       List last couple of observations.
-    -c, --chars N    With -l, show N chars of the situation [default: 70].
+    -n, --number N   With -l, show N observations [default: 20].
+    -c, --chars N    With -l, show N chars of the situation [default: 100].
     --date DATE      Use specific date.
     -s, --save       Save as default for updates [default: False].
     --thread THREAD  Use specific thread [default: big-picture].
