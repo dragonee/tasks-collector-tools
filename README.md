@@ -4,7 +4,7 @@ These tools add CLI support to the [Tasks Collector](https://github.com/dragonee
 
 ## All-in-one
 
-### tasks (1.0)
+### tasks (1.0.1)
 
 ```
 Connect to the Tasks Collector.
@@ -20,6 +20,7 @@ Options:
 Available commands:
   observation
   olist
+  edit
   quest
   journal
   update

@@ -38,6 +38,8 @@ try:
 except ImportError:
     pass
 
+from .quick_notes import get_quick_notes_as_string
+
 
 def get_input_until(predicate, prompt=None):
     text = None
@@ -152,11 +154,15 @@ def add_task(config, default_thread, text):
 
 
 def main():
-    arguments = docopt(__doc__ + help(), version='1.0')
+    arguments = docopt(__doc__ + help(), version='1.0.1')
 
     config = TasksConfigFile()
 
     print("Connected to Tasks Collector at {}".format(config.url))
+
+    quick_notes = get_quick_notes_as_string(config).strip()
+
+    print(quick_notes)
 
     try:
         consume(repeatfunc(
