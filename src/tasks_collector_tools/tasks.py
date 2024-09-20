@@ -69,9 +69,15 @@ def help():
 def print_help(*args):
     print(help())
 
+
+def open_observation(args, config, default_thread):
+    subprocess.call(['open', f"{config.url}/observations/{args[0]}"])
+
+
 commands = {
     'observation': 'observation',
     'olist': ['observation', '-l'],
+    'edit': open_observation,
     'quest': 'quest',
     'journal': 'journal',
     'update': 'update',
