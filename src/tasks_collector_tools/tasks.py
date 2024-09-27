@@ -119,10 +119,18 @@ def run_command(command, args, config, default_thread):
     raise TypeError(f"Invalid command: {command}")
 
 
+def is_habit_command(text):
+    return text.startswith('!') or text.startswith('#')
+
+
 def run_single_task(config, default_thread):
     original_text = get_input_until(bool, prompt="> ")
 
     parts = shlex.split(original_text)
+
+    if is_habit_command(parts[0]):
+        add_habit(config, default_thread, original_text)
+        return
 
     command = match_text_against_commands(parts[0])
 
@@ -146,6 +154,24 @@ def add_task(config, default_thread, text):
 
     if r.ok:
         print(GOTOURL.format(url=config.url, name=default_thread).strip())
+    else:
+        try:
+            print(json.dumps(r.json(), indent=4, sort_keys=True))
+        except json.decoder.JSONDecodeError:
+            print("HTTP {}\n{}".format(r.status_code, r.text))
+
+
+def add_habit(config, default_thread, text):
+    payload = {
+        'text': text,
+    }
+
+    url = '{}/habit/track/'.format(config.url)
+
+    r = requests.post(url, json=payload, auth=HTTPBasicAuth(config.user, config.password))
+
+    if r.ok:
+        print("Habit tracked")
     else:
         try:
             print(json.dumps(r.json(), indent=4, sort_keys=True))
