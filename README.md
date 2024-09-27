@@ -4,7 +4,7 @@ These tools add CLI support to the [Tasks Collector](https://github.com/dragonee
 
 ## All-in-one
 
-### tasks (1.0.1)
+### tasks (1.0.2)
 
 ```
 Connect to the Tasks Collector.
@@ -16,6 +16,9 @@ Options:
     --thread THREAD  Use specific thread [default: Inbox].
     -h, --help       Show this message.
     --version        Show version information.
+
+By default, tasks are added to the "Inbox" thread.
+By prefixing a line with `!` or `#`, it will be added to the Habit Tracker instead.
 
 Available commands:
   observation
@@ -77,22 +80,6 @@ Usage:
     update [options] [ID]
 
 Options:
-    -h, --help       Show this message.
-    --version        Show version information.
-```
-
-## Task management
-
-### addtask (1.0.3)
-
-```
-Add a task.
-
-Usage: 
-    addtask [options] [TEXT]
-
-Options:
-    --thread THREAD  Use specific thread [default: Inbox].
     -h, --help       Show this message.
     --version        Show version information.
 ```

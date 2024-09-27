@@ -16,10 +16,6 @@ These tools add CLI support to the [Tasks Collector](https://github.com/dragonee
 
 [$ make-readme -h 3 update]
 
-## Task management
-
-[$ make-readme -h 3 addtask]
-
 ## Quests
 
 [$ make-readme -h 3 quest]

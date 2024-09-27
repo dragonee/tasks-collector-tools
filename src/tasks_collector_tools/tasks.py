@@ -7,6 +7,9 @@ Options:
     --thread THREAD  Use specific thread [default: Inbox].
     -h, --help       Show this message.
     --version        Show version information.
+
+By default, tasks are added to the "Inbox" thread.
+By prefixing a line with `!` or `#`, it will be added to the Habit Tracker instead.
 """
 
 GOTOURL = """
@@ -180,7 +183,7 @@ def add_habit(config, default_thread, text):
 
 
 def main():
-    arguments = docopt(__doc__ + help(), version='1.0.1')
+    arguments = docopt(__doc__ + help(), version='1.0.2')
 
     config = TasksConfigFile()
 

@@ -21,7 +21,6 @@ setup(
             'boardmd = tasks_collector_tools.boardmd:main',
             'observationdump = tasks_collector_tools.observationdump:main',
             'quest = tasks_collector_tools.quest:main',
-            'addtask = tasks_collector_tools.addtask:main',
             'tasks = tasks_collector_tools.tasks:main',
             'update = tasks_collector_tools.update:main',
             'journal = tasks_collector_tools.journal:main',
