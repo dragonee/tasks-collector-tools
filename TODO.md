@@ -4,3 +4,4 @@
 - [x] observationdump dumps Events?
 - [x] observationdump dumps Closed
 - [ ] habits (ask for all habits occured/missed/skip for the day)
+- [ ] tasks downloads habits and journal shows them

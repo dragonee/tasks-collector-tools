@@ -87,7 +87,7 @@ Options:
 
 ## Habits
 
-### habit-list (1.0.0)
+### habit-list (1.0.1)
 
 ```
 List habits.
@@ -96,6 +96,7 @@ Usage:
     habit-list [options]
 
 Options:
+    -o, --output FILENAME  Output to file [default: -]
     -h, --help       Show this message.
     --version        Show version information.
 ```
