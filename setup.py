@@ -24,6 +24,7 @@ setup(
             'tasks = tasks_collector_tools.tasks:main',
             'update = tasks_collector_tools.update:main',
             'journal = tasks_collector_tools.journal:main',
+            'habit-list = tasks_collector_tools.habit_list:main',
         ],
     }
 )

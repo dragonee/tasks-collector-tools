@@ -82,6 +82,7 @@ def open_observation(args, config, default_thread):
 commands = {
     'observation': 'observation',
     'olist': ['observation', '-l'],
+    'hlist': 'habit-list',
     'edit': open_observation,
     'quest': 'quest',
     'journal': 'journal',
