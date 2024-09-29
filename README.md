@@ -23,6 +23,7 @@ By prefixing a line with `!` or `#`, it will be added to the Habit Tracker inste
 Available commands:
   observation
   olist
+  hlist
   edit
   quest
   journal
@@ -78,6 +79,21 @@ Add update to an observation.
 
 Usage: 
     update [options] [ID]
+
+Options:
+    -h, --help       Show this message.
+    --version        Show version information.
+```
+
+## Habits
+
+### habit-list (1.0.0)
+
+```
+List habits.
+
+Usage: 
+    habit-list [options]
 
 Options:
     -h, --help       Show this message.
