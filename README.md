@@ -23,6 +23,7 @@ By prefixing a line with `!` or `#`, it will be added to the Habit Tracker inste
 Available commands:
   observation
   olist
+  habits
   hlist
   edit
   quest
@@ -87,16 +88,17 @@ Options:
 
 ## Habits
 
-### habits (1.0.1)
+### habits (1.1)
 
 ```
-List habits.
+Track habits daily or list them.
 
 Usage: 
     habits [options]
 
 Options:
-    -o, --output FILENAME  Output to file [default: -]
+    -l, --list       List habits
+    -o, --output FILENAME  If listing, output to file [default: -]
     -h, --help       Show this message.
     --version        Show version information.
 ```

@@ -42,6 +42,7 @@ except ImportError:
     pass
 
 from .quick_notes import get_quick_notes_as_string
+from .habits import add_habit
 
 
 def get_input_until(predicate, prompt=None):
@@ -82,7 +83,8 @@ def open_observation(args, config, default_thread):
 commands = {
     'observation': 'observation',
     'olist': ['observation', '-l'],
-    'hlist': 'habit-list',
+    'habits': 'habits',
+    'hlist': ['habits', '-l'],
     'edit': open_observation,
     'quest': 'quest',
     'journal': 'journal',
@@ -133,7 +135,7 @@ def run_single_task(config, default_thread):
     parts = shlex.split(original_text)
 
     if is_habit_command(parts[0]):
-        add_habit(config, default_thread, original_text)
+        add_habit(config, original_text)
         return
 
     command = match_text_against_commands(parts[0])
@@ -143,7 +145,7 @@ def run_single_task(config, default_thread):
         
         return
 
-    add_task(config, default_thread, original_text)
+    add_task(config, original_text)
 
 
 def add_task(config, default_thread, text):
@@ -158,24 +160,6 @@ def add_task(config, default_thread, text):
 
     if r.ok:
         print(GOTOURL.format(url=config.url, name=default_thread).strip())
-    else:
-        try:
-            print(json.dumps(r.json(), indent=4, sort_keys=True))
-        except json.decoder.JSONDecodeError:
-            print("HTTP {}\n{}".format(r.status_code, r.text))
-
-
-def add_habit(config, default_thread, text):
-    payload = {
-        'text': text,
-    }
-
-    url = '{}/habit/track/'.format(config.url)
-
-    r = requests.post(url, json=payload, auth=HTTPBasicAuth(config.user, config.password))
-
-    if r.ok:
-        print("Habit tracked")
     else:
         try:
             print(json.dumps(r.json(), indent=4, sort_keys=True))
