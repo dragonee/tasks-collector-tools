@@ -1,7 +1,7 @@
 """List habits.
 
 Usage: 
-    habit-list [options]
+    habits [options]
 
 Options:
     -o, --output FILENAME  Output to file [default: -]

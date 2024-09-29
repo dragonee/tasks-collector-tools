@@ -18,7 +18,7 @@ These tools add CLI support to the [Tasks Collector](https://github.com/dragonee
 
 ## Habits
 
-[$ make-readme -h 3 habit-list]
+[$ make-readme -h 3 habits]
 
 ## Quests
 

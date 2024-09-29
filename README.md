@@ -87,13 +87,13 @@ Options:
 
 ## Habits
 
-### habit-list (1.0.1)
+### habits (1.0.1)
 
 ```
 List habits.
 
 Usage: 
-    habit-list [options]
+    habits [options]
 
 Options:
     -o, --output FILENAME  Output to file [default: -]
