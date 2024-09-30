@@ -145,7 +145,7 @@ def run_single_task(config, default_thread):
         
         return
 
-    add_task(config, original_text)
+    add_task(config, default_thread, original_text)
 
 
 def add_task(config, default_thread, text):
