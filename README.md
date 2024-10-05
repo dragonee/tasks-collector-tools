@@ -45,7 +45,7 @@ Usage:
     journal [options]
 
 Options:
-    -o               Also save a copy as observation.
+    -o, -s           Also save a copy as new observation, filling Situation field.
     -t THREAD, --thread THREAD  Use this thread [default: Daily]
     -h, --help       Show this message.
     --version        Show version information.
