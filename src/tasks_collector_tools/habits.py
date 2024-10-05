@@ -4,6 +4,7 @@ Usage:
     habits [options]
 
 Options:
+    --yesterday      Set the date to yesterday.
     -l, --list       List habits
     -o, --output FILENAME  If listing, output to file [default: -]
     -h, --help       Show this message.
@@ -23,9 +24,17 @@ from .config.tasks import TasksConfigFile
 from .utils import smart_open
 
 from dataclasses import dataclass
-def add_habit(config, text):
+
+from datetime import datetime, timedelta
+
+
+def add_habit(config, text, published=None):
+    if published is None:
+        published = datetime.now()
+
     payload = {
         'text': text,
+        'published': published.astimezone().isoformat()
     }
 
     url = '{}/habit/track/'.format(config.url)
@@ -45,8 +54,11 @@ def format_habit_list(habits):
     return ", ".join(map(lambda h: '#' + h['tagname'], habits))
 
 
-def get_habit_list(config, stderr):
+def get_habit_list(config, stderr, date=None):
     url = f"{config.url}/habit-api/"
+
+    if date is not None:
+        url += f"?date={date.isoformat()}"
 
     r = requests.get(url, auth=HTTPBasicAuth(config.user, config.password))
 
@@ -116,16 +128,26 @@ def format_line(habit, answer, text):
     return f'{occured}{habit.tagname} {text}'
 
 
+def get_yesterday_date():
+    return (datetime.now() - timedelta(days=1)).replace(
+        hour=23, minute=59, second=59, microsecond=0
+    )
+
+
 def main():
     arguments = docopt(__doc__, version='1.1')
 
     config = TasksConfigFile()
 
+    published = datetime.now()
+    if arguments['--yesterday']:
+        published = get_yesterday_date()
+
     if arguments['--list']:
         print_habit_list(config, arguments['--output'])
         return
     
-    habits = get_habit_list(config, sys.stderr)
+    habits = get_habit_list(config, sys.stderr, date=published.date())
 
     habit_objects = list(map(lambda h: Habit(**h), habits))
 
@@ -138,7 +160,7 @@ def main():
             if answer is None:
                 continue
             
-            add_habit(config, format_line(habit, answer, text))
+            add_habit(config, format_line(habit, answer, text), published=published)
     except (KeyboardInterrupt, EOFError):
         print()
         return

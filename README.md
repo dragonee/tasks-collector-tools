@@ -97,6 +97,7 @@ Usage:
     habits [options]
 
 Options:
+    --yesterday      Set the date to yesterday.
     -l, --list       List habits
     -o, --output FILENAME  If listing, output to file [default: -]
     -h, --help       Show this message.
