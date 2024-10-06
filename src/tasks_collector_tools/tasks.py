@@ -61,6 +61,8 @@ Available commands:
 Quit by pressing Ctrl+D or Ctrl+C.
 """
 
+DEFAULT_THREAD = 'Inbox'
+
 
 def list_to_points(list):
     return "\n".join([f"  {item}" for item in list])
@@ -130,7 +132,10 @@ def is_habit_command(text):
 
 
 def run_single_task(config, default_thread):
-    original_text = get_input_until(bool, prompt="> ")
+    if default_thread != DEFAULT_THREAD:
+        original_text = get_input_until(bool, prompt=f"({default_thread}) > ")
+    else:
+        original_text = get_input_until(bool, prompt="> ")
 
     parts = shlex.split(original_text)
 
