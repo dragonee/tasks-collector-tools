@@ -185,7 +185,7 @@ def main():
     try:
         r = requests.post(url, json=payload, auth=HTTPBasicAuth(config.user, config.password))
 
-        if arguments['-o']:
+        if arguments['-s']:
             url = '{}/observation-api/'.format(config.url)
 
             new_payload = {
