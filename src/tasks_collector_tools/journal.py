@@ -4,7 +4,8 @@ Usage:
     journal [options]
 
 Options:
-    -o, -s           Also save a copy as new observation, filling Situation field.
+    -s               Also save a copy as new observation, filling Situation field.
+    -o               Alias for -s.
     -t THREAD, --thread THREAD  Use this thread [default: Daily]
     -h, --help       Show this message.
     --version        Show version information.
@@ -185,7 +186,7 @@ def main():
     try:
         r = requests.post(url, json=payload, auth=HTTPBasicAuth(config.user, config.password))
 
-        if arguments['-s']:
+        if arguments['-s'] or arguments['-o']:
             url = '{}/observation-api/'.format(config.url)
 
             new_payload = {
