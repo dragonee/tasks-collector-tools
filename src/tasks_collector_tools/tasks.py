@@ -92,6 +92,7 @@ commands = {
     'journal': 'journal',
     'update': 'update',
     'help': print_help,
+    'clear': 'clear',
 }
 
 

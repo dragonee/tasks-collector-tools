@@ -30,6 +30,7 @@ Available commands:
   journal
   update
   help
+  clear
 
 Quit by pressing Ctrl+D or Ctrl+C.
 ```
@@ -45,7 +46,8 @@ Usage:
     journal [options]
 
 Options:
-    -o, -s           Also save a copy as new observation, filling Situation field.
+    -s               Also save a copy as new observation, filling Situation field.
+    -o               Alias for -s.
     -t THREAD, --thread THREAD  Use this thread [default: Daily]
     -h, --help       Show this message.
     --version        Show version information.
