@@ -87,6 +87,7 @@ commands = {
     'olist': ['observation', '-l'],
     'habits': 'habits',
     'hlist': ['habits', '-l'],
+    'oedit': open_observation,
     'edit': open_observation,
     'quest': 'quest',
     'journal': 'journal',

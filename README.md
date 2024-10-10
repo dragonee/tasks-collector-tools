@@ -25,6 +25,7 @@ Available commands:
   olist
   habits
   hlist
+  oedit
   edit
   quest
   journal
