@@ -158,3 +158,18 @@ Options:
     -h, --help       Show this message.
     --version        Show version information.
 ```
+
+## Utilities
+
+### journalize (1.0)
+
+```
+Convert observationupdate to journal.
+
+Usage:
+    journalize [options] OBSERVATION_ID
+
+Options:
+    -h, --help       Show this message.
+    --version        Show version information.
+```

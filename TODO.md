@@ -5,3 +5,5 @@
 - [x] observationdump dumps Closed
 - [ ] habits (ask for all habits occured/missed/skip for the day)
 - [ ] tasks downloads habits and journal shows them
+- [x] convert observationupdate to journal
+  - [ ] Should we remove event_stream_id events when we push to journal?

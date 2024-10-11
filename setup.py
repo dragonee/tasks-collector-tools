@@ -25,6 +25,7 @@ setup(
             'update = tasks_collector_tools.update:main',
             'journal = tasks_collector_tools.journal:main',
             'habits = tasks_collector_tools.habits:main',
+            'journalize = tasks_collector_tools.journalize:main',
         ],
     }
 )
