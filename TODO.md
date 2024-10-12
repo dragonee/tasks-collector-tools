@@ -7,3 +7,4 @@
 - [ ] tasks downloads habits and journal shows them
 - [x] convert observationupdate to journal
   - [ ] Should we remove event_stream_id events when we push to journal?
+- [x] remove journalize, implement journal directly in tasks-collector

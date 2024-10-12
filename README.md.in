@@ -32,6 +32,3 @@ TODO: write up process on how to do a periodical reflection.
 
 [$ make-readme -h 3 boardmd]
 
-## Utilities
-
-[$ make-readme -h 3 journalize]
