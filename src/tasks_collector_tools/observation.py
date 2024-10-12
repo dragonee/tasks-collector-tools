@@ -57,6 +57,8 @@ from pathlib import Path
 
 from .config.tasks import TasksConfigFile
 
+from .utils import sanitize_fields
+
 
 def template_from_arguments(arguments):
     return TEMPLATE.format(
@@ -171,6 +173,8 @@ def main():
         if current_name is not None:
             add_stack_to_payload(payload, current_name, current_stack)
 
+    payload = sanitize_fields(payload)
+    
     if payload['situation'] == '':
         print("No changes were made to the Situation field.")
 

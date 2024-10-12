@@ -47,7 +47,7 @@ from .config.tasks import TasksConfigFile
 
 from .quick_notes import get_quick_notes_as_string
 
-
+from .utils import sanitize_fields
 def template_from_arguments(arguments, quick_notes):
     return TEMPLATE.format(
         comment='',
@@ -165,7 +165,7 @@ def main():
         if current_name is not None:
             add_stack_to_payload(payload, current_name, current_stack)
 
-
+    payload = sanitize_fields(payload)
     if payload['comment'] == '':
         print("No changes were made to the Comment field.")
 
