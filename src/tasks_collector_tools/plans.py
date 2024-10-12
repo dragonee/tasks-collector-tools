@@ -25,8 +25,8 @@ class Plan:
         if not self.focus and not self.want:
             return ""
 
-        focus = itemize_string(self.focus, prepend="\n")
-        want = itemize_string(self.want, prepend="\n")
+        focus = itemize_string(self.focus, prepend="\n", prefix="- [ ] ")
+        want = itemize_string(self.want, prepend="\n", prefix="- [ ] ")
 
         if focus.strip():
             focus = FOCUS_TEMPLATE.format(focus=focus)
