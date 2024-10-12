@@ -43,7 +43,7 @@ except ImportError:
 
 from .quick_notes import get_quick_notes_as_string
 from .habits import add_habit
-
+from .plans import get_plan_for_today
 
 def get_input_until(predicate, prompt=None):
     text = None
@@ -184,6 +184,11 @@ def main():
     quick_notes = get_quick_notes_as_string(config).strip()
 
     print(quick_notes)
+
+    plan = get_plan_for_today(config)
+
+    if plan:
+        print(plan)
 
     try:
         consume(repeatfunc(

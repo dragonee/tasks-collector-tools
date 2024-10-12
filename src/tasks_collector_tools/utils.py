@@ -21,3 +21,15 @@ def sanitize_string(value):
 
 def sanitize_fields(payload):
     return {k: sanitize_string(v) for k, v in payload.items()}
+
+
+def itemize_string(value, prepend=None, append=None, prefix="- "):
+    s = "\n".join([prefix + line.strip() if line.strip() else line for line in value.split("\n")])
+
+    if prepend:
+        s = prepend + s
+
+    if append:
+        s = s + append
+
+    return s

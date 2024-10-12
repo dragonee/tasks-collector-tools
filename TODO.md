@@ -8,3 +8,5 @@
 - [x] convert observationupdate to journal
   - [ ] Should we remove event_stream_id events when we push to journal?
 - [x] remove journalize, implement journal directly in tasks-collector
+- [x] Show plan for today in tasks tool
+  - [x] And journal tool

@@ -15,6 +15,7 @@ TEMPLATE = """
 > Thread: {thread}
 > Published: {published}
 {notes}
+{plan}
 # Comment
 
 {comment}
@@ -47,18 +48,21 @@ from .config.tasks import TasksConfigFile
 
 from .quick_notes import get_quick_notes_as_string
 
+from .plans import get_plan_for_today
 from .utils import sanitize_fields
-def template_from_arguments(arguments, quick_notes):
+
+def template_from_arguments(arguments, quick_notes, plan):
     return TEMPLATE.format(
         comment='',
         published=datetime.now(),
         thread=arguments['--thread'],
         notes=quick_notes,
+        plan=plan,
     ).lstrip()
 
 
 def template_from_payload(payload):
-    return TEMPLATE.format(notes='', **payload).lstrip()
+    return TEMPLATE.format(notes='', plan='', **payload).lstrip()
 
 title_re = re.compile(r'^# (Comment)')
 meta_re = re.compile(r'^> (Thread|Published): (.*)$')
@@ -123,10 +127,12 @@ def main():
     config = TasksConfigFile()
 
     quick_notes = get_quick_notes_as_string(config)
+    
+    plan = get_plan_for_today(config)
 
     tmpfile = tempfile.NamedTemporaryFile(mode='w', delete=False, suffix='.md')
 
-    template = template_from_arguments(arguments, quick_notes)
+    template = template_from_arguments(arguments, quick_notes, plan)
 
     with tmpfile:
         tmpfile.write(template)
@@ -166,6 +172,7 @@ def main():
             add_stack_to_payload(payload, current_name, current_stack)
 
     payload = sanitize_fields(payload)
+
     if payload['comment'] == '':
         print("No changes were made to the Comment field.")
 
