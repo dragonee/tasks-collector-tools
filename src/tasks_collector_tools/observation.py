@@ -175,7 +175,7 @@ def main():
 
     payload = sanitize_fields(payload)
     
-    if payload['situation'] == '':
+    if not payload['situation']:
         print("No changes were made to the Situation field.")
 
         os.unlink(tmpfile.name)

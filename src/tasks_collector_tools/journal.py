@@ -173,7 +173,7 @@ def main():
 
     payload = sanitize_fields(payload)
 
-    if payload['comment'] == '':
+    if not payload['comment']:
         print("No changes were made to the Comment field.")
 
         os.unlink(tmpfile.name)
