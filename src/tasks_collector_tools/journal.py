@@ -49,7 +49,8 @@ from .config.tasks import TasksConfigFile
 from .quick_notes import get_quick_notes_as_string
 
 from .plans import get_plan_for_today
-from .utils import sanitize_fields
+from .utils import sanitize_fields, get_cursor_position
+
 
 def template_from_arguments(arguments, quick_notes, plan):
     return TEMPLATE.format(
@@ -134,13 +135,15 @@ def main():
 
     template = template_from_arguments(arguments, quick_notes, plan)
 
+    cursor_position = get_cursor_position(template, "# Comment")
+
     with tmpfile:
         tmpfile.write(template)
     
     editor = os.environ.get('EDITOR', 'vim')
 
     result = subprocess.run([
-        editor, tmpfile.name
+        editor, f'+{cursor_position}', tmpfile.name,
     ])
 
     if result.returncode != 0:

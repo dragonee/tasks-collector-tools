@@ -33,3 +33,12 @@ def itemize_string(value, prepend=None, append=None, prefix="- "):
         s = s + append
 
     return s
+
+def get_cursor_position(template, search_string):
+    comment_index = template.find(search_string)
+    if comment_index != -1:
+        newlines_before_comment = template[:comment_index].count('\n')
+    else:
+        newlines_before_comment = 0
+
+    return newlines_before_comment + 3

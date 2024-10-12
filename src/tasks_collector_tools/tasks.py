@@ -187,8 +187,7 @@ def main():
 
     plan = get_plan_for_today(config)
 
-    if plan:
-        print(plan)
+    print(plan)
 
     try:
         consume(repeatfunc(

@@ -22,6 +22,9 @@ class Plan:
     want: str
 
     def __str__(self):
+        if not self.focus and not self.want:
+            return ""
+
         focus = itemize_string(self.focus, prepend="\n")
         want = itemize_string(self.want, prepend="\n")
 
@@ -43,6 +46,6 @@ def get_plan_for_today(config):
     data = response.json()
 
     if data['count'] == 0:
-        return None
+        return Plan(id=None, pub_date=date.today(), focus="", want="")
 
     return Plan(**data['results'][0])

@@ -139,7 +139,7 @@ def main():
     editor = os.environ.get('EDITOR', 'vim')
 
     result = subprocess.run([
-        editor, tmpfile.name
+        editor, '+7', tmpfile.name
     ])
 
     if result.returncode != 0:
