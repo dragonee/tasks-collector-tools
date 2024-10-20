@@ -18,9 +18,13 @@ def smart_open(filename=None, *args, pipe=sys.stdin, **kwargs):
 def sanitize_string(value):
     return value.strip().replace('\n', '\r\n') if value else None
 
+def sanitize_list_of_strings(value):
+    return list(filter(None, map(str.strip, value)))
 
-def sanitize_fields(payload):
-    return {k: sanitize_string(v) for k, v in payload.items()}
+def sanitize_fields(payload, mapping=None):
+    mapping = mapping or {}
+
+    return {k: mapping.get(k, sanitize_string)(v) for k, v in payload.items()}
 
 
 def itemize_string(value, prepend=None, append=None, prefix="- "):

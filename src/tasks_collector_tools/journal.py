@@ -4,6 +4,7 @@ Usage:
     journal [options]
 
 Options:
+    -T TAGS, --tags TAGS  Add these tags to the journal entry.
     -s               Also save a copy as new observation, filling Situation field.
     -o               Alias for -s.
     -t THREAD, --thread THREAD  Use this thread [default: Daily]
@@ -14,6 +15,7 @@ Options:
 TEMPLATE = """
 > Thread: {thread}
 > Published: {published}
+> Tags: {tags}
 {notes}
 {plan}
 # Comment
@@ -49,11 +51,12 @@ from .config.tasks import TasksConfigFile
 from .quick_notes import get_quick_notes_as_string
 
 from .plans import get_plan_for_today
-from .utils import sanitize_fields, get_cursor_position
+from .utils import sanitize_fields, get_cursor_position, sanitize_list_of_strings
 
 
 def template_from_arguments(arguments, quick_notes, plan):
     return TEMPLATE.format(
+        tags=arguments['--tags'] or '',
         comment='',
         published=datetime.now(),
         thread=arguments['--thread'],
@@ -63,13 +66,20 @@ def template_from_arguments(arguments, quick_notes, plan):
 
 
 def template_from_payload(payload):
+    payload = payload.copy()
+
+    payload['tags'] = ', '.join(payload['tags'])
+
     return TEMPLATE.format(notes='', plan='', **payload).lstrip()
 
 title_re = re.compile(r'^# (Comment)')
-meta_re = re.compile(r'^> (Thread|Published): (.*)$')
+meta_re = re.compile(r'^> (Thread|Published|Tags): (.*)$')
 
 
 def add_meta_to_payload(payload, name, item):
+    if name.lower() == 'tags':
+        item = item.split(',')
+
     payload[name.lower()] = item
 
 def add_stack_to_payload(payload, name, lines):
@@ -174,7 +184,9 @@ def main():
         if current_name is not None:
             add_stack_to_payload(payload, current_name, current_stack)
 
-    payload = sanitize_fields(payload)
+    payload = sanitize_fields(payload, {
+        'tags': sanitize_list_of_strings,
+    })
 
     if not payload['comment']:
         print("No changes were made to the Comment field.")
@@ -194,6 +206,7 @@ def main():
     url = '{}/journal/'.format(config.url)
 
     try:
+        print(payload)
         r = requests.post(url, json=payload, auth=HTTPBasicAuth(config.user, config.password))
 
         if arguments['-s'] or arguments['-o']:

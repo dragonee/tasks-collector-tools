@@ -91,6 +91,7 @@ commands = {
     'edit': open_observation,
     'quest': 'quest',
     'journal': 'journal',
+    'thought': ['journal', '-T', 'thoughts'],
     'update': 'update',
     'help': print_help,
     'clear': 'clear',
