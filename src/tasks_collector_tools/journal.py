@@ -206,7 +206,6 @@ def main():
     url = '{}/journal/'.format(config.url)
 
     try:
-        print(payload)
         r = requests.post(url, json=payload, auth=HTTPBasicAuth(config.user, config.password))
 
         if arguments['-s'] or arguments['-o']:
