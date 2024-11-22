@@ -10,3 +10,5 @@
 - [x] remove journalize, implement journal directly in tasks-collector
 - [x] Show plan for today in tasks tool
   - [x] And journal tool
+- [ ] Set short timeouts for plan and quick notes getters
+- [ ] Cache plan and quick notes in journal tool
