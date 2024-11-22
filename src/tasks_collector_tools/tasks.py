@@ -95,6 +95,7 @@ commands = {
     'update': 'update',
     'help': print_help,
     'clear': 'clear',
+    'wtf': ['journal', '-T', 'wtf'],
 }
 
 
