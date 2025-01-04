@@ -2,16 +2,18 @@ import sys
 import contextlib
 
 @contextlib.contextmanager
-def smart_open(filename=None, *args, pipe=sys.stdin, **kwargs):
+def smart_open(filename=None, mode='r', pipe=None, **kwargs):
     if filename and filename != '-':
-        fh = open(filename, *args, **kwargs)
-    else:
+        fh = open(filename, mode=mode, **kwargs)
+    elif pipe is not None:
         fh = pipe
+    else:
+        fh = sys.stdin if mode.startswith('r') else sys.stdout
 
     try:
         yield fh
     finally:
-        if fh is not sys.stdout:
+        if fh not in (sys.stdout, sys.stderr, sys.stdin):
             fh.close()
 
 
