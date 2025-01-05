@@ -13,7 +13,7 @@ setup(
     ],
     packages=('tasks_collector_tools', 'tasks_collector_tools.config'),
     package_dir={'': 'src'},
-    install_requires=['docopt', 'requests', 'python-slugify', 'pyyaml', 'colored', 'more-itertools', 'python-dateutil'],
+    install_requires=['docopt', 'requests', 'python-slugify', 'pyyaml', 'colored', 'more-itertools', 'python-dateutil', 'pydantic'],
     python_requires='>=3',
     entry_points={
         'console_scripts': [
@@ -25,6 +25,7 @@ setup(
             'update = tasks_collector_tools.update:main',
             'journal = tasks_collector_tools.journal:main',
             'habits = tasks_collector_tools.habits:main',
+            'eventdump = tasks_collector_tools.eventdump:main',
         ],
     }
 )

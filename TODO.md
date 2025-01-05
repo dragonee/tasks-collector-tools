@@ -12,3 +12,5 @@
   - [x] And journal tool
 - [ ] Set short timeouts for plan and quick notes getters
 - [ ] Cache plan and quick notes in journal tool
+- [x] Dump journal to file
+- [x] Dump habits?
