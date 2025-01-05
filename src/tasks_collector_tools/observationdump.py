@@ -4,6 +4,8 @@ Usage:
     observationdump [options] PATH
 
 Options:
+    --open           Dump only open observations.
+    --closed         Dump only closed observations.
     -d DATE_FROM, --from FROM  Dump from specific date.
     -D DATE_TO, --to DATE_TO   Dump to specific date.
     -f, --force      Overwrite existing files.
@@ -215,6 +217,12 @@ def params_from_arguments(arguments):
     params.update({
         'features': 'updates',
     })
+
+    if arguments['--open']:
+        params['open'] = 'true'
+        
+    if arguments['--closed']:
+        params['open'] = 'false'
 
     return params
 
