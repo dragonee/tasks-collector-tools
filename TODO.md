@@ -14,3 +14,4 @@
 - [ ] Cache plan and quick notes in journal tool
 - [x] Dump journal to file
 - [x] Dump habits?
+- [ ] Eventdump: fix `- #` problems, some markdown implementations are treating it as a heading in list

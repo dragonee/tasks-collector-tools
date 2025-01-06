@@ -38,7 +38,7 @@ class Plan:
 
 
 def get_plan_for_today(config):
-    url = '{}/plans/?pub_date={}'.format(config.url, date.today().isoformat())
+    url = '{}/plans/?pub_date={}&thread=Daily'.format(config.url, date.today().isoformat())
 
     response = requests.get(url, auth=(config.user, config.password))
     response.raise_for_status()
