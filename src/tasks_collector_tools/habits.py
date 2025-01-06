@@ -4,6 +4,7 @@ Usage:
     habits [options]
 
 Options:
+    -a, --all        Track all habits.
     --yesterday      Set the date to yesterday.
     -l, --list       List habits
     -o, --output FILENAME  If listing, output to file [default: -]
@@ -147,11 +148,16 @@ def main():
         print_habit_list(config, arguments['--output'])
         return
     
-    habits = get_habit_list(config, sys.stderr, date=published.date())
+    raw_habits = get_habit_list(config, sys.stderr, date=published.date())
 
-    habit_objects = list(map(lambda h: Habit(**h), habits))
+    habits = map(lambda h: Habit(**h), raw_habits)
 
-    non_tracked_habits = filter(lambda h: h.today_tracked == 0, habit_objects)
+    if arguments['--all']:
+        habits_without_ignored = habits
+    else:
+        habits_without_ignored = filter(lambda h: h.tagname not in config.ignore_habits, habits)
+
+    non_tracked_habits = filter(lambda h: h.today_tracked == 0, habits_without_ignored)
 
     try:
         for habit in non_tracked_habits:
