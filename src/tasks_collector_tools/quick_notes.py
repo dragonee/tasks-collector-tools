@@ -1,6 +1,8 @@
 import requests
 from requests.auth import HTTPBasicAuth
 
+from requests.exceptions import ConnectionError
+
 
 def quick_note_to_string(note):
     return "\n  ".join(note['note'].split("\n"))

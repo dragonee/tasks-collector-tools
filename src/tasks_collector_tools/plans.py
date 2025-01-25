@@ -6,6 +6,9 @@ from dataclasses import dataclass
 
 from .utils import itemize_string
 
+from requests.exceptions import ConnectionError
+
+
 FOCUS_TEMPLATE = "Focus: {focus}"
 WANT_TEMPLATE = "Want: {want}"
 
@@ -38,14 +41,17 @@ class Plan:
 
 
 def get_plan_for_today(config):
-    url = '{}/plans/?pub_date={}&thread=Daily'.format(config.url, date.today().isoformat())
+    try:
+        url = '{}/plans/?pub_date={}&thread=Daily'.format(config.url, date.today().isoformat())
 
-    response = requests.get(url, auth=(config.user, config.password))
-    response.raise_for_status()
+        response = requests.get(url, auth=(config.user, config.password))
+        response.raise_for_status()
 
-    data = response.json()
+        data = response.json()
 
-    if data['count'] == 0:
-        return Plan(id=None, pub_date=date.today(), focus="", want="")
+        if data['count'] == 0:
+            return Plan(id=None, pub_date=date.today(), focus="", want="")
 
-    return Plan(**data['results'][0])
+        return Plan(**data['results'][0])
+    except ConnectionError:
+        return Plan(id=None, pub_date=date.today(), focus='', want='')

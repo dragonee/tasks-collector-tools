@@ -15,3 +15,4 @@
 - [x] Dump journal to file
 - [x] Dump habits?
 - [ ] Eventdump: fix `- #` problems, some markdown implementations are treating it as a heading in list
+- [ ] Use rlcompleter for named observations
