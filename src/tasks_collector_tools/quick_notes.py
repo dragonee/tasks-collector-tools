@@ -3,6 +3,8 @@ from requests.auth import HTTPBasicAuth
 
 from requests.exceptions import ConnectionError
 
+from .utils import SHORT_TIMEOUT
+
 
 def quick_note_to_string(note):
     return "\n  ".join(note['note'].split("\n"))
@@ -12,7 +14,11 @@ def _get_quick_notes_as_string(config):
     try:
         url = '{}/quick-notes/'.format(config.url)
 
-        r = requests.get(url, auth=HTTPBasicAuth(config.user, config.password))
+        r = requests.get(
+            url, 
+            auth=HTTPBasicAuth(config.user, config.password),
+            timeout=SHORT_TIMEOUT
+        )
 
         if not r.ok:
             return ''

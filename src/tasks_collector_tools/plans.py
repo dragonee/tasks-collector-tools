@@ -4,7 +4,7 @@ from datetime import date
 
 from dataclasses import dataclass
 
-from .utils import itemize_string
+from .utils import itemize_string, SHORT_TIMEOUT
 
 from requests.exceptions import ConnectionError
 
@@ -44,7 +44,11 @@ def get_plan_for_today(config):
     try:
         url = '{}/plans/?pub_date={}&thread=Daily'.format(config.url, date.today().isoformat())
 
-        response = requests.get(url, auth=(config.user, config.password))
+        response = requests.get(
+            url, 
+            auth=(config.user, config.password), 
+            timeout=SHORT_TIMEOUT
+        )
         response.raise_for_status()
 
         data = response.json()

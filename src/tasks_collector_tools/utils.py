@@ -1,6 +1,9 @@
 import sys
 import contextlib
 import re
+
+SHORT_TIMEOUT = 3.05
+
 @contextlib.contextmanager
 def smart_open(filename=None, mode='r', pipe=None, **kwargs):
     if filename and filename != '-':
