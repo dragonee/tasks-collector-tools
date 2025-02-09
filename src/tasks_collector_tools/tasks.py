@@ -96,6 +96,7 @@ commands = {
     'help': print_help,
     'clear': 'clear',
     'wtf': ['journal', '-T', 'wtf'],
+    'nove': ['journal', '-T', 'nove'],
 }
 
 
