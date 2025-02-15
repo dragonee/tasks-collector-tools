@@ -7,6 +7,7 @@ Options:
     -T TAGS, --tags TAGS  Add these tags to the journal entry.
     -s               Also save a copy as new observation, filling Situation field.
     -o               Alias for -s.
+    -Y, --yesterday  Use yesterday's date for the journal entry.
     -t THREAD, --thread THREAD  Use this thread [default: Daily]
     -h, --help       Show this message.
     --version        Show version information.
@@ -33,7 +34,7 @@ import json, os, re, sys
 
 from docopt import docopt
 
-from datetime import datetime, date
+from datetime import datetime, date, timedelta
 
 import tempfile
 
@@ -53,12 +54,17 @@ from .quick_notes import get_quick_notes_as_string
 from .plans import get_plan_for_today
 from .utils import sanitize_fields, get_cursor_position, sanitize_list_of_strings
 
+def yesterdays_date():
+    """Returns yesterday's date at 23:XX."""
+
+    return (datetime.now() -  timedelta(days=1)).replace(hour=23)
+
 
 def template_from_arguments(arguments, quick_notes, plan):
     return TEMPLATE.format(
         tags=arguments['--tags'] or '',
         comment='',
-        published=datetime.now(),
+        published=yesterdays_date() if arguments['--yesterday'] else datetime.now(),
         thread=arguments['--thread'],
         notes=quick_notes,
         plan=plan,
