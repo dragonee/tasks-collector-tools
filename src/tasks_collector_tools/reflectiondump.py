@@ -64,15 +64,13 @@ TEMPLATE = """
 {{ reflections.good }}
 {% endif %}
 
-{% if reflections.better %}
 ## Better
-
+{% if reflections.better %}
 {{ reflections.better }}
 {% endif %}
 
-{% if reflections.best %}
 ## Best
-
+{% if reflections.best %}
 {{ reflections.best }}
 {% endif %}
 
@@ -410,7 +408,7 @@ def get_daily_events(config: TasksConfigFile, arguments: dict, dt: date = None):
     
     params = {
         'date': dt.strftime('%Y-%m-%d'),
-        'thread': arguments['--thread'],
+        'thread': arguments['--thread'] if arguments['--thread'] else 'Daily',
     }
 
     dt_string = urlencode(params)

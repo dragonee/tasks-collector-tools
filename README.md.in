@@ -35,3 +35,5 @@ TODO: write up process on how to do a periodical reflection.
 [$ make-readme -h 3 reflectiondump]
 
 [$ make-readme -h 3 eventdump]
+
+[$ make-readme -h 3 reflect]

@@ -200,3 +200,20 @@ Options:
     -h, --help       Show this message.
     --version        Show version information.
 ```
+
+### reflect (1.1)
+
+```
+Reflect on a day, week or month.
+
+Usage: 
+    reflect [options]
+
+Options:
+    -d, --date DATE  Use this date for reflection.
+    -w, --week       Use this week for reflection.
+    -m, --month      Use this month for reflection.
+    -y, --yesterday  Use yesterday for reflection.
+    -h, --help       Show this message.
+    --version        Show version information.
+```
