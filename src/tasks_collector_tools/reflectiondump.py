@@ -4,6 +4,8 @@ Usage:
     reflectiondump [options]
 
 Options:
+    -T, --thread THREAD  Dump specific thread.
+    --skip-journals     Skip journals.
     -d DATE_FROM, --from FROM  Dump from specific date.
     -D DATE_TO, --to DATE_TO   Dump to specific date.
     --year YEAR      Dump specific year.
@@ -406,9 +408,14 @@ def get_daily_events(config: TasksConfigFile, arguments: dict, dt: date = None):
     if dt is None:
         dt = datetime.now().date()
     
-    dt_string = '?date={}'.format(dt.strftime('%Y-%m-%d'))
+    params = {
+        'date': dt.strftime('%Y-%m-%d'),
+        'thread': arguments['--thread'],
+    }
 
-    url = '{}/api/events/daily/{}'.format(
+    dt_string = urlencode(params)
+
+    url = '{}/api/events/daily/?{}'.format(
         config.url, 
         dt_string,
     )
@@ -536,8 +543,9 @@ class HabitStatistics:
 class ResultAggregator:
     results: List[Result]
 
-    def __init__(self, results: List[Result]):
+    def __init__(self, results: List[Result], skip_journals: bool = False):
         self.results = results
+        self.skip_journals = skip_journals
 
     def _get_events(self, event_type: Type[Event]):
         return [event for result in self.results for event in result.events if isinstance(event, event_type)]
@@ -601,7 +609,7 @@ class ResultAggregator:
             'has_plans': has_plans,
             'plans': self.get_plan_context(),
             'habits': HabitStatistics(self.get_habit_events()).get_context(),
-            'journals': self.render_journal_events(),
+            'journals': self.render_journal_events() if not self.skip_journals else None,
             'observation_stats': self.get_observation_stats().get_context(),
         }
 
@@ -636,7 +644,7 @@ def main():
 
         results.append(result)
 
-    aggregator = ResultAggregator(results)
+    aggregator = ResultAggregator(results, skip_journals=arguments['--skip-journals'])
 
     print(render_template(TEMPLATE, aggregator.get_context()))
 

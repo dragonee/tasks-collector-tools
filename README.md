@@ -176,6 +176,8 @@ Usage:
     reflectiondump [options]
 
 Options:
+    -T, --thread THREAD  Dump specific thread.
+    --skip-journals     Skip journals.
     -d DATE_FROM, --from FROM  Dump from specific date.
     -D DATE_TO, --to DATE_TO   Dump to specific date.
     --year YEAR      Dump specific year.
