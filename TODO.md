@@ -29,3 +29,6 @@
     - [x] Shows reflections on weekly thread
     - [ ] Shows breakthroughs
     - [x] Allows to modify Reflection for monthly thread
+- [ ] Two-stage reflection:
+  - First stage – get interesting points from reflection
+  - Second stage - write a journal entry based on reflection

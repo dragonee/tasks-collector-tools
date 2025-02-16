@@ -53,6 +53,8 @@ from .quick_notes import get_quick_notes_as_string
 from .plans import get_plan_for_today
 from .utils import sanitize_fields, get_cursor_position, sanitize_list_of_strings
 
+from datetime import timezone
+
 from dateutil.parser import parse
 
 import calendar
@@ -205,6 +207,27 @@ def journal_payload_from_reflection_payload(payload, published, thread):
         'reflection': True,
     }
 
+
+def published_from_arguments(arguments):
+    dt = datetime.now()
+
+    if arguments['--date']:
+        dt = parse(arguments['--date'])
+    
+    if arguments['--yesterday']:
+        return datetime.now() - timedelta(days=1)
+    elif arguments['--week']:
+        _, end = get_start_and_end_of_week(dt)
+        
+        return end.replace(hour=23, minute=59, second=59, microsecond=0, tzinfo=timezone.utc)
+    elif arguments['--month']:
+        _, end = get_start_and_end_of_month(dt)
+
+        return end.replace(hour=23, minute=59, second=59, microsecond=0, tzinfo=timezone.utc)
+    
+    return dt
+
+
 def main():
     arguments = docopt(__doc__, version='1.1')
 
@@ -262,7 +285,8 @@ def main():
 
         sys.exit(0)
 
-    published = datetime.now() - timedelta(days=1) if arguments['--yesterday'] else datetime.now()
+    published = published_from_arguments(arguments)
+
     thread = get_save_thread_from_arguments(arguments)
 
     payload = journal_payload_from_reflection_payload(payload, published, thread)
