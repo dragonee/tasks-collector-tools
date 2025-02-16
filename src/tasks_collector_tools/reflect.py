@@ -202,6 +202,7 @@ def journal_payload_from_reflection_payload(payload, published, thread):
         'comment': comment,
         'thread': thread,
         'tags': [],
+        'reflection': True,
     }
 
 def main():

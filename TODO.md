@@ -22,10 +22,10 @@
   - [ ] Daily mode:
     - Shows eventdump for today
     - Allows to modify Reflection for today
-  - [ ] Weekly mode:
+  - [x] Weekly mode:
     - Shows eventdump for last 7 days
     - Allows to modify Reflection for weekly thread
   - [ ] Monthly mode:
-    - Shows plans/reflections on weekly thread
-    - Shows breakthroughs
-    - Allows to modify Reflection for monthly thread
+    - [x] Shows reflections on weekly thread
+    - [ ] Shows breakthroughs
+    - [x] Allows to modify Reflection for monthly thread
