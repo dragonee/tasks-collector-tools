@@ -97,6 +97,7 @@ commands = {
     'clear': 'clear',
     'wtf': ['journal', '-T', 'wtf'],
     'nove': ['journal', '-T', 'nove'],
+    'reflect': 'reflect',
 }
 
 
