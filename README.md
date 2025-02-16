@@ -29,9 +29,12 @@ Available commands:
   edit
   quest
   journal
+  thought
   update
   help
   clear
+  wtf
+  nove
 
 Quit by pressing Ctrl+D or Ctrl+C.
 ```
@@ -47,8 +50,10 @@ Usage:
     journal [options]
 
 Options:
+    -T TAGS, --tags TAGS  Add these tags to the journal entry.
     -s               Also save a copy as new observation, filling Situation field.
     -o               Alias for -s.
+    -Y, --yesterday  Use yesterday's date for the journal entry.
     -t THREAD, --thread THREAD  Use this thread [default: Daily]
     -h, --help       Show this message.
     --version        Show version information.
@@ -100,6 +105,7 @@ Usage:
     habits [options]
 
 Options:
+    -a, --all        Track all habits.
     --yesterday      Set the date to yesterday.
     -l, --list       List habits
     -o, --output FILENAME  If listing, output to file [default: -]
@@ -135,6 +141,8 @@ Usage:
     observationdump [options] PATH
 
 Options:
+    --open           Dump only open observations.
+    --closed         Dump only closed observations.
     -d DATE_FROM, --from FROM  Dump from specific date.
     -D DATE_TO, --to DATE_TO   Dump to specific date.
     -f, --force      Overwrite existing files.
@@ -159,3 +167,34 @@ Options:
     --version        Show version information.
 ```
 
+### reflectiondump (1.0)
+
+```
+Dump observations to markdown files.
+
+Usage: 
+    reflectiondump [options]
+
+Options:
+    -d DATE_FROM, --from FROM  Dump from specific date.
+    -D DATE_TO, --to DATE_TO   Dump to specific date.
+    --year YEAR      Dump specific year.
+    -h, --help       Show this message.
+    --version        Show version information.
+```
+
+### eventdump (1.0)
+
+```
+Dump observations to markdown files.
+
+Usage: 
+    eventdump [options] [PATH]
+
+Options:
+    -d DATE_FROM, --from FROM  Dump from specific date.
+    -D DATE_TO, --to DATE_TO   Dump to specific date.
+    --year YEAR      Dump specific year.
+    -h, --help       Show this message.
+    --version        Show version information.
+```

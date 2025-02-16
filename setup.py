@@ -26,6 +26,7 @@ setup(
             'journal = tasks_collector_tools.journal:main',
             'habits = tasks_collector_tools.habits:main',
             'eventdump = tasks_collector_tools.eventdump:main',
+            'reflectiondump = tasks_collector_tools.reflectiondump:main',
         ],
     }
 )

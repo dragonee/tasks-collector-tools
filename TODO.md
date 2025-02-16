@@ -16,3 +16,16 @@
 - [x] Dump habits?
 - [ ] Eventdump: fix `- #` problems, some markdown implementations are treating it as a heading in list
 - [ ] Use rlcompleter for named observations
+- [ ] yy for multiple habits tracked in habits tool
+- [ ] Add reflection tool
+  - [x] Add reflectiondump tool
+  - [ ] Daily mode:
+    - Shows eventdump for today
+    - Allows to modify Reflection for today
+  - [ ] Weekly mode:
+    - Shows eventdump for last 7 days
+    - Allows to modify Reflection for weekly thread
+  - [ ] Monthly mode:
+    - Shows plans/reflections on weekly thread
+    - Shows breakthroughs
+    - Allows to modify Reflection for monthly thread
