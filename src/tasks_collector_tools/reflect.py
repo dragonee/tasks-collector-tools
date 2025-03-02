@@ -62,7 +62,11 @@ import calendar
 from pprint import pprint
 
 def get_start_and_end_of_week(date):
-    return date.replace(day=date.day - date.weekday()), date.replace(day=date.day - date.weekday() + 6)
+    # Calculate start of week (Monday) and end of week (Sunday) using timedelta
+    start = date - timedelta(days=date.weekday())
+    end = start + timedelta(days=6)
+    return start, end
+
 
 def get_start_and_end_of_month(date):
     return date.replace(day=1), date.replace(day=calendar.monthrange(date.year, date.month)[1])
