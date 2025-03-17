@@ -8,6 +8,7 @@ Options:
     -w, --week       Use this week for reflection.
     -m, --month      Use this month for reflection.
     -y, --yesterday  Use yesterday for reflection.
+    -M, --missing    Fill in missing journal entries for the date range.
     -h, --help       Show this message.
     --version        Show version information.
 """
@@ -232,10 +233,60 @@ def published_from_arguments(arguments):
     return dt
 
 
+def fill_missing_journal_entries(arguments):
+    """Fill in missing journal entries for the specified date range."""
+    cmd = ['reflectiondump', '-M']
+
+    day = parse(arguments['--date']) if arguments['--date'] else date.today()
+
+    thread = get_fetch_thread_from_arguments(arguments)
+    if thread is not None:
+        cmd += ['--thread', thread]
+
+    if arguments['--week']:
+        start, end = get_start_and_end_of_week(day)
+    elif arguments['--month']:
+        start, end = get_start_and_end_of_month(day)
+    elif arguments['--yesterday']:
+        start = end = day - timedelta(days=1)
+    else:
+        start = end = day
+
+    cmd += [
+        '-d', start.strftime('%Y-%m-%d'),
+        '-D', end.strftime('%Y-%m-%d'),
+    ]
+
+    try:
+        output = subprocess.check_output(cmd).decode('utf-8').strip()
+        
+        if not output:
+            return
+        
+        missing_dates = list(map(lambda x: x.strip(), output.split('\n')))
+        print(f"Found {len(missing_dates)} missing journal entries.")
+        
+        for date_str in missing_dates:
+            date_str_formatted = datetime.strptime(date_str, '%Y-%m-%d').strftime('%Y-%m-%d (%A)')
+            print(f"Creating journal entry for {date_str_formatted}...")
+
+            journal_cmd = ['journal', '--date', date_str]
+            
+            try:
+                subprocess.run(journal_cmd, check=True)
+            except subprocess.CalledProcessError:
+                print(f"Error creating journal entry for {date_str}")
+    except subprocess.CalledProcessError as e:
+        print(f"Error running reflectiondump: {e}")
+
+
 def main():
     arguments = docopt(__doc__, version='1.1')
 
     config = TasksConfigFile()
+    
+    if arguments['--missing']:
+        fill_missing_journal_entries(arguments)
 
     tmpfile = tempfile.NamedTemporaryFile(mode='w', delete=False, suffix='.md')
 
