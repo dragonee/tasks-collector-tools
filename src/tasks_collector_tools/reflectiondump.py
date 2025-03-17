@@ -9,6 +9,7 @@ Options:
     -d DATE_FROM, --from FROM  Dump from specific date.
     -D DATE_TO, --to DATE_TO   Dump to specific date.
     --year YEAR      Dump specific year.
+    -M, --missing    Print only dates without reflection entries.
     -h, --help       Show this message.
     --version        Show version information.
 """
@@ -27,6 +28,7 @@ import subprocess
 
 import requests
 from requests.auth import HTTPBasicAuth
+from requests.exceptions import RequestException
 
 from pathlib import Path
 
@@ -626,25 +628,39 @@ def main():
         start_date = parse(arguments['--from']).date() if arguments['--from'] else datetime.now().date()
         end_date = parse(arguments['--to']).date() if arguments['--to'] else start_date
 
-    def date_range(start_date, end_date, delta):
+    def date_range(start_date, end_date, delta=timedelta(days=1)):
         current_date = start_date
         while current_date <= end_date:
             yield current_date
             current_date += delta
 
-    results = []
+    def try_get_daily_events(dt, config, arguments):
+        try:
+            return get_daily_events(config, arguments, dt)
+        except RequestException as e:
+            print(f"Error fetching data for {dt}: {str(e)}", file=sys.stderr)
+            return None
 
-    for dt in date_range(start_date, end_date, timedelta(days=1)):
-        result = get_daily_events(config, arguments, dt)
+    date_results = list(map(
+        lambda dt: (
+            dt,
+            try_get_daily_events(dt, config, arguments)
+        ),
+        date_range(start_date, end_date)
+    ))
+    
+    if arguments['--missing']:
+        missing_dates = [dt for dt, result in date_results if result is None or not result.reflection]
+        
+        for dt in missing_dates:
+            print(dt.strftime('%Y-%m-%d'))
+        
+        return
 
-        if result.empty():
-            continue
-
-        results.append(result)
-
-    aggregator = ResultAggregator(results, skip_journals=arguments['--skip-journals'])
-
+    valid_results = [result for _, result in date_results 
+                    if result is not None and not result.empty()]
+    
+    aggregator = ResultAggregator(valid_results, skip_journals=arguments['--skip-journals'])
     print(render_template(TEMPLATE, aggregator.get_context()))
-
 
 
