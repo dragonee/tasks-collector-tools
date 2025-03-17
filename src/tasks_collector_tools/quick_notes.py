@@ -1,7 +1,7 @@
 import requests
 from requests.auth import HTTPBasicAuth
 
-from requests.exceptions import ConnectionError
+from requests.exceptions import ConnectionError, ReadTimeout
 
 from .utils import SHORT_TIMEOUT
 
@@ -27,7 +27,7 @@ def _get_quick_notes_as_string(config):
 
         return "\n- ".join(map(quick_note_to_string, j['results']))
         
-    except ConnectionError:
+    except (ConnectionError, ReadTimeout):
         pass
 
     return ''
