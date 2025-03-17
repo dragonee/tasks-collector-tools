@@ -650,7 +650,7 @@ def main():
     ))
     
     if arguments['--missing']:
-        missing_dates = [dt for dt, result in date_results if result is None or not result.reflection]
+        missing_dates = [dt for dt, result in date_results if result is None or not result.reflection or result.reflection.empty()]
         
         for dt in missing_dates:
             print(dt.strftime('%Y-%m-%d'))
