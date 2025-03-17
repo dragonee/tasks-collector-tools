@@ -4,6 +4,7 @@ Usage:
     journal [options]
 
 Options:
+    -d, --date DATE  Use this date for the journal entry.
     -T TAGS, --tags TAGS  Add these tags to the journal entry.
     -s               Also save a copy as new observation, filling Situation field.
     -o               Alias for -s.
@@ -35,6 +36,7 @@ import json, os, re, sys
 from docopt import docopt
 
 from datetime import datetime, date, timedelta
+from dateutil.parser import parse
 
 import tempfile
 
@@ -60,11 +62,20 @@ def yesterdays_date():
     return (datetime.now() -  timedelta(days=1)).replace(hour=23)
 
 
+def get_date_from_arguments(arguments):
+    if arguments['--date']:
+        return parse(arguments['--date'])
+    elif arguments['--yesterday']:
+        return yesterdays_date()
+    
+    return datetime.now()   
+
+
 def template_from_arguments(arguments, quick_notes, plan):
     return TEMPLATE.format(
         tags=arguments['--tags'] or '',
         comment='',
-        published=yesterdays_date() if arguments['--yesterday'] else datetime.now(),
+        published=get_date_from_arguments(arguments),
         thread=arguments['--thread'],
         notes=quick_notes,
         plan=plan,
