@@ -35,6 +35,7 @@ Available commands:
   clear
   wtf
   nove
+  reflect
 
 Quit by pressing Ctrl+D or Ctrl+C.
 ```
@@ -50,6 +51,7 @@ Usage:
     journal [options]
 
 Options:
+    -d, --date DATE  Use this date for the journal entry.
     -T TAGS, --tags TAGS  Add these tags to the journal entry.
     -s               Also save a copy as new observation, filling Situation field.
     -o               Alias for -s.
@@ -106,7 +108,7 @@ Usage:
 
 Options:
     -a, --all        Track all habits.
-    --yesterday      Set the date to yesterday.
+    -Y, --yesterday      Set the date to yesterday.
     -l, --list       List habits
     -o, --output FILENAME  If listing, output to file [default: -]
     -h, --help       Show this message.
@@ -131,6 +133,24 @@ Options:
 ## Tools for periodical reflections
 
 TODO: write up process on how to do a periodical reflection.
+
+### reflect (1.1)
+
+```
+Reflect on a day, week or month.
+
+Usage: 
+    reflect [options]
+
+Options:
+    -d, --date DATE  Use this date for reflection.
+    -w, --week       Use this week for reflection.
+    -m, --month      Use this month for reflection.
+    -y, --yesterday  Use yesterday for reflection.
+    -M, --missing    Fill in missing journal entries for the date range.
+    -h, --help       Show this message.
+    --version        Show version information.
+```
 
 ### observationdump (1.1)
 
@@ -181,6 +201,7 @@ Options:
     -d DATE_FROM, --from FROM  Dump from specific date.
     -D DATE_TO, --to DATE_TO   Dump to specific date.
     --year YEAR      Dump specific year.
+    -M, --missing    Print only dates without reflection entries.
     -h, --help       Show this message.
     --version        Show version information.
 ```
@@ -214,6 +235,7 @@ Options:
     -w, --week       Use this week for reflection.
     -m, --month      Use this month for reflection.
     -y, --yesterday  Use yesterday for reflection.
+    -M, --missing    Fill in missing journal entries for the date range.
     -h, --help       Show this message.
     --version        Show version information.
 ```

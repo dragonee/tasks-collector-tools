@@ -28,6 +28,8 @@ These tools add CLI support to the [Tasks Collector](https://github.com/dragonee
 
 TODO: write up process on how to do a periodical reflection.
 
+[$ make-readme -h 3 reflect]
+
 [$ make-readme -h 3 observationdump]
 
 [$ make-readme -h 3 boardmd]
