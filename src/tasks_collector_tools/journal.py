@@ -10,6 +10,7 @@ Options:
     -o               Alias for -s.
     -Y, --yesterday  Use yesterday's date for the journal entry.
     -t THREAD, --thread THREAD  Use this thread [default: Daily]
+    -f FILE, --file FILE  Use this file instead of the generated template.
     -h, --help       Show this message.
     --version        Show version information.
 """
@@ -71,10 +72,10 @@ def get_date_from_arguments(arguments):
     return datetime.now()   
 
 
-def template_from_arguments(arguments, quick_notes, plan):
+def template_from_arguments(arguments, quick_notes, plan, comment=''):
     return TEMPLATE.format(
         tags=arguments['--tags'] or '',
-        comment='',
+        comment=comment,
         published=get_date_from_arguments(arguments),
         thread=arguments['--thread'],
         notes=quick_notes,
@@ -160,7 +161,13 @@ def main():
 
     tmpfile = tempfile.NamedTemporaryFile(mode='w', delete=False, suffix='.md')
 
-    template = template_from_arguments(arguments, quick_notes, plan)
+    comment = ''
+
+    if arguments['--file']:
+        with open(arguments['--file'], 'r') as f:
+           comment = f.read()
+    
+    template = template_from_arguments(arguments, quick_notes, plan, comment)
 
     cursor_position = get_cursor_position(template, "# Comment")
 

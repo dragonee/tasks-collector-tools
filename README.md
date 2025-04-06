@@ -57,6 +57,7 @@ Options:
     -o               Alias for -s.
     -Y, --yesterday  Use yesterday's date for the journal entry.
     -t THREAD, --thread THREAD  Use this thread [default: Daily]
+    -f FILE, --file FILE  Use this file instead of the generated template.
     -h, --help       Show this message.
     --version        Show version information.
 ```
