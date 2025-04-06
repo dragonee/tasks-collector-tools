@@ -280,6 +280,22 @@ def fill_missing_journal_entries(arguments):
         print(f"Error running reflectiondump: {e}")
 
 
+def get_journal_command_arguments_from_payload(payload):
+    """Convert a reflection payload into journal command arguments."""
+    cmd = ['journal']
+
+    if 'thread' in payload:
+        cmd.extend(['--thread', payload['thread']])
+    
+    if 'published' in payload:
+        cmd.extend(['--date', payload['published']])
+
+    if 'tags' in payload and payload['tags']:
+        cmd.extend(['--tags', ', '.join(payload['tags'])])
+
+    return cmd
+
+
 def main():
     arguments = docopt(__doc__, version='1.1')
 
@@ -333,10 +349,10 @@ def main():
         if current_name is not None:
             add_stack_to_payload(payload, current_name, current_stack)
 
+    os.unlink(tmpfile.name)
+
     if not payload['good']:
         print("No changes were made to the Comment field.")
-
-        os.unlink(tmpfile.name)
 
         sys.exit(0)
 
@@ -346,48 +362,17 @@ def main():
 
     payload = journal_payload_from_reflection_payload(payload, published, thread)
 
-    try:
-        send_dead_letters(DEAD_LETTER_DIRECTORY, metadata={
-            'auth': HTTPBasicAuth(config.user, config.password)
-        })
-    except Exception as e:
-        print(e)
-        print("Error: Failed to send queue")
+    cmd = get_journal_command_arguments_from_payload(payload)
 
-    url = '{}/journal/'.format(config.url)
+    with tempfile.NamedTemporaryFile(mode='w', suffix='.md') as f:
+        f.write(payload['comment'])
+        f.flush()
 
-    try:
-        r = requests.post(url, json=payload, auth=HTTPBasicAuth(config.user, config.password))
-    except ConnectionError:
-        name = queue_dead_letter(payload, path=DEAD_LETTER_DIRECTORY, metadata={
-            'url': url,            
-        })
+        cmd.extend(['--file', f.name])
 
-        print("Error: Connection failed.")
-        print(f"Your update was saved at {name}.")
-        print("It will be sent next time you run this program.")
+        print(cmd)
 
-        sys.exit(2)
-
-    if r.ok:
-        new_payload = r.json()
-
-        print(template_from_payload(new_payload))
-
-        print(GOTOURL.format(url=config.url).strip())
-
-        os.unlink(tmpfile.name)
-    else:
-        try:
-            print(json.dumps(r.json(), indent=4, sort_keys=True))
-        except json.decoder.JSONDecodeError:
-            print("HTTP {}\n{}".format(r.status_code, r.text))
-        
-        print("The temporary file was saved at {}".format(
-            tmpfile.name
-        ))
-
-
+        subprocess.run(cmd, check=True)
 
         
             

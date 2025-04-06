@@ -590,6 +590,9 @@ class ResultAggregator:
         return self._render_events(self.get_journal_events())
 
     def get_title(self):
+        if len(self.results) == 0:
+            return 'Reflection'
+        
         if len(self.results) == 1:
             return 'Reflection on {}'.format(
                 self.results[0].date.strftime('%-d %B (%A)'),
