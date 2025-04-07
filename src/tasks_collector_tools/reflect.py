@@ -13,24 +13,7 @@ Options:
     --version        Show version information.
 """
 
-TEMPLATE = """
-> Thread: {thread}
-> Published: {published}
-> Tags: {tags}
-{notes}
-{plan}
-# Comment
-
-{comment}
-
-"""
-
-GOTOURL = """
-See more:
-- {url}/
-"""
-
-import json, os, re, sys
+import os, re, sys
 
 from docopt import docopt
 
@@ -40,19 +23,10 @@ import tempfile
 
 import subprocess
 
-import requests
-from requests.exceptions import ConnectionError
+from pydantic import BaseModel, Field
+from typing import List
 
-from requests.auth import HTTPBasicAuth
-
-from pathlib import Path
-
-from .config.tasks import TasksConfigFile
-
-from .quick_notes import get_quick_notes_as_string
-
-from .plans import get_plan_for_today
-from .utils import sanitize_fields, get_cursor_position, sanitize_list_of_strings
+from .utils import get_cursor_position
 
 from datetime import timezone
 
@@ -120,13 +94,6 @@ def template_from_arguments(arguments):
     return subprocess.check_output(cmd).decode('utf-8').strip().replace('\r', '')
 
 
-def template_from_payload(payload):
-    payload = payload.copy()
-
-    payload['tags'] = ', '.join(payload['tags'])
-
-    return TEMPLATE.format(notes='', plan='', **payload).lstrip()
-
 title_re = re.compile(r'^##? (Reflection|Better|Best)')
 
 
@@ -143,52 +110,6 @@ def add_stack_to_payload(payload, name, lines):
     payload[name.lower()] = ''.join(lines).strip()
 
 
-DEAD_LETTER_DIRECTORY = os.path.expanduser(os.path.join('~', '.tasks', 'queue'))
-
-
-def queue_dead_letter(payload, path, metadata):
-    if not os.path.exists(path):
-        os.makedirs(path)
-
-    basename = "{}".format(datetime.now().strftime("%Y-%m-%d_%H%M%S_journal"))
-    name = f'{basename}.json'
-    i = 0
-
-    while os.path.exists(name):
-        i += 1
-        name = f'{basename}-{i}.json'
-
-    with open(os.path.join(path, name), "w") as f:
-        json.dump({
-            'payload': payload,
-            'meta': metadata
-        }, f)
-    
-    return name
-
-def send_dead_letter(path, _metadata):
-    metadata = _metadata.copy()
-
-    print(f"Attempting to send {path}...")
-
-    with open(path) as f:        
-        data = json.load(f)
-
-
-        metadata.update(data['meta'])
-        payload = data['payload']
-
-        requests.post(metadata['url'], json=payload, auth=metadata['auth'])
-
-    os.unlink(path)
-
-
-def send_dead_letters(path, metadata):
-    for root, dirs, files in os.walk(path):
-        for name in sorted(files):
-            send_dead_letter(os.path.join(root, name), metadata)
-
-
 multi_line_re = re.compile(r'\n(\s*\n)+')
 
 
@@ -200,17 +121,45 @@ JOURNAL_TEMPLATE = """
 {best} 
 """
 
-def journal_payload_from_reflection_payload(payload, published, thread):
+class JournalPayload(BaseModel):
+    """Pydantic model for journal payload."""
+    published: str
+    comment: str
+    thread: str
+    tags: List[str] = Field(default_factory=list)
+    reflection: bool = False
+    
+    def to_journal_command(self) -> List[str]:
+        """Convert the payload into journal command arguments."""
+        cmd = ['journal']
+        
+        if self.thread:
+            cmd.extend(['--thread', self.thread])
+            
+        if self.published:
+            cmd.extend(['--date', self.published])
+        
+        if self.tags:
+            cmd.extend(['--tags', ', '.join(self.tags)])
+            
+        return cmd
+
+
+def journal_payload_from_reflection_payload(
+        payload: dict, 
+        published: datetime, 
+        thread: str
+    ) -> JournalPayload:
     comment = JOURNAL_TEMPLATE.format(**payload).strip()
     comment = multi_line_re.sub('\n\n', comment)
 
-    return {
-        'published': published.isoformat(),
-        'comment': comment,
-        'thread': thread,
-        'tags': [],
-        'reflection': True,
-    }
+    return JournalPayload(
+        published=published.isoformat(),
+        comment=comment,
+        thread=thread,
+        tags=[],
+        reflection=True,
+    )
 
 
 def published_from_arguments(arguments):
@@ -280,26 +229,8 @@ def fill_missing_journal_entries(arguments):
         print(f"Error running reflectiondump: {e}")
 
 
-def get_journal_command_arguments_from_payload(payload):
-    """Convert a reflection payload into journal command arguments."""
-    cmd = ['journal']
-
-    if 'thread' in payload:
-        cmd.extend(['--thread', payload['thread']])
-    
-    if 'published' in payload:
-        cmd.extend(['--date', payload['published']])
-
-    if 'tags' in payload and payload['tags']:
-        cmd.extend(['--tags', ', '.join(payload['tags'])])
-
-    return cmd
-
-
 def main():
     arguments = docopt(__doc__, version='1.1')
-
-    config = TasksConfigFile()
     
     if arguments['--missing']:
         fill_missing_journal_entries(arguments)
@@ -362,15 +293,13 @@ def main():
 
     payload = journal_payload_from_reflection_payload(payload, published, thread)
 
-    cmd = get_journal_command_arguments_from_payload(payload)
+    cmd = payload.to_journal_command()
 
     with tempfile.NamedTemporaryFile(mode='w', suffix='.md') as f:
-        f.write(payload['comment'])
+        f.write(payload.comment)
         f.flush()
 
         cmd.extend(['--file', f.name])
-
-        print(cmd)
 
         subprocess.run(cmd, check=True)
 
