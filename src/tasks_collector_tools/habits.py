@@ -5,7 +5,8 @@ Usage:
 
 Options:
     -a, --all        Track all habits.
-    -Y, --yesterday      Set the date to yesterday.
+    -d, --date DATE  Use this date for tracking habits.
+    -Y, --yesterday  Set the date to yesterday.
     -l, --list       List habits
     -o, --output FILENAME  If listing, output to file [default: -]
     -h, --help       Show this message.
@@ -27,6 +28,7 @@ from .utils import smart_open
 from dataclasses import dataclass
 
 from datetime import datetime, timedelta
+from dateutil.parser import parse
 
 
 def add_habit(config, text, published=None):
@@ -129,10 +131,16 @@ def format_line(habit, answer, text):
     return f'{occured}{habit.tagname} {text}'
 
 
-def get_yesterday_date():
-    return (datetime.now() - timedelta(days=1)).replace(
-        hour=23, minute=59, second=59, microsecond=0
-    )
+def get_date_from_arguments(arguments):
+    """Get the date from command line arguments."""
+    if arguments['--date']:
+        return parse(arguments['--date'])
+    elif arguments['--yesterday']:
+        return (datetime.now() - timedelta(days=1)).replace(
+            hour=23, minute=59, second=59, microsecond=0
+        )
+    
+    return datetime.now()
 
 
 def main():
@@ -140,9 +148,7 @@ def main():
 
     config = TasksConfigFile()
 
-    published = datetime.now()
-    if arguments['--yesterday']:
-        published = get_yesterday_date()
+    published = get_date_from_arguments(arguments)
 
     if arguments['--list']:
         print_habit_list(config, arguments['--output'])
