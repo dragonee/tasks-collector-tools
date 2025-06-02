@@ -11,6 +11,7 @@ Options:
     -Y, --yesterday  Use yesterday's date for the journal entry.
     -t THREAD, --thread THREAD  Use this thread [default: Daily]
     -f FILE, --file FILE  Use this file instead of the generated template.
+    -L, --today      List journals from today.
     -h, --help       Show this message.
     --version        Show version information.
 """
@@ -150,10 +151,27 @@ def send_dead_letters(path, metadata):
             send_dead_letter(os.path.join(root, name), metadata)
 
 
+def list_todays_journals(arguments):
+    """List journals from today using reflectiondump."""
+    cmd = ['reflectiondump', '-d', datetime.now().strftime('%Y-%m-%d')]
+    if arguments['--thread']:
+        cmd.extend(['--thread', arguments['--thread']])
+    try:
+        output = subprocess.check_output(cmd).decode('utf-8').strip()
+        print(output)
+        return True
+    except subprocess.CalledProcessError as e:
+        print(f"Error running reflectiondump: {e}")
+        sys.exit(1)
+
 def main():
     arguments = docopt(__doc__, version='1.1')
 
     config = TasksConfigFile()
+
+    if arguments['--today']:
+        list_todays_journals(arguments)
+        return
 
     quick_notes = get_quick_notes_as_string(config)
     
