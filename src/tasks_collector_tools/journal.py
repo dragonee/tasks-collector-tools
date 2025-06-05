@@ -116,7 +116,7 @@ def template_from_payload(payload):
 
     payload['tags'] = ', '.join(payload['tags'])
 
-    return TEMPLATE.format(notes='', plan='', **payload).lstrip()
+    return TEMPLATE.format(notes='', plans='', **payload).lstrip()
 
 title_re = re.compile(r'^# (Comment)')
 meta_re = re.compile(r'^> (Thread|Published|Tags): (.*)$')
