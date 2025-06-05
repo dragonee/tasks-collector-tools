@@ -21,7 +21,9 @@ TEMPLATE = """
 > Published: {published}
 > Tags: {tags}
 {notes}
-{plan}
+
+{plans}
+
 # Comment
 
 {comment}
@@ -55,7 +57,7 @@ from .config.tasks import TasksConfigFile
 
 from .quick_notes import get_quick_notes_as_string
 
-from .plans import get_plan_for_today
+from .plans import get_plans_for_today_sync
 from .utils import sanitize_fields, get_cursor_position, sanitize_list_of_strings
 
 def yesterdays_date():
@@ -73,14 +75,39 @@ def get_date_from_arguments(arguments):
     return datetime.now()   
 
 
-def template_from_arguments(arguments, quick_notes, plan, comment=''):
+def format_plan(plan, title):
+    """Format a single plan with its title, only if it has content."""
+    plan_str = str(plan).strip()
+    if not plan_str:
+        return ""
+    return f"# {title}\n{plan_str}\n"
+
+def template_from_arguments(arguments, quick_notes, plans, comment=''):
+    # Format each plan section
+    plan_sections = []
+    
+    daily_plan = format_plan(plans['daily'], "Daily Plan")
+    if daily_plan:
+        plan_sections.append(daily_plan)
+        
+    weekly_plan = format_plan(plans['weekly'], "Weekly Plan")
+    if weekly_plan:
+        plan_sections.append(weekly_plan)
+        
+    monthly_plan = format_plan(plans['monthly'], "Monthly Plan")
+    if monthly_plan:
+        plan_sections.append(monthly_plan)
+    
+    # Join all non-empty plan sections with newlines
+    plans_text = "\n".join(plan_sections)
+    
     return TEMPLATE.format(
         tags=arguments['--tags'] or '',
         comment=comment,
         published=get_date_from_arguments(arguments),
         thread=arguments['--thread'],
         notes=quick_notes,
-        plan=plan,
+        plans=plans_text,
     ).lstrip()
 
 
@@ -175,7 +202,7 @@ def main():
 
     quick_notes = get_quick_notes_as_string(config)
     
-    plan = get_plan_for_today(config)
+    plans = get_plans_for_today_sync(config)
 
     tmpfile = tempfile.NamedTemporaryFile(mode='w', delete=False, suffix='.md')
 
@@ -185,7 +212,7 @@ def main():
         with open(arguments['--file'], 'r') as f:
            comment = f.read()
     
-    template = template_from_arguments(arguments, quick_notes, plan, comment)
+    template = template_from_arguments(arguments, quick_notes, plans, comment)
 
     cursor_position = get_cursor_position(template, "# Comment")
 
