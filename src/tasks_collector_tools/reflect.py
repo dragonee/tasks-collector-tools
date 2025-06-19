@@ -263,10 +263,26 @@ def fill_missing_journal_entries(arguments):
         if not output:
             return
         
-        missing_dates = list(map(lambda x: x.strip(), output.split('\n')))
-        print(f"Found {len(missing_dates)} missing journal entries.")
+        missing_dates = map(lambda x: x.strip(), output.split('\n'))
         
-        for date_str in missing_dates:
+        today = date.today()
+        
+        def is_past_or_today(date_str):
+            try:
+                parsed_date = datetime.strptime(date_str, '%Y-%m-%d').date()
+                return parsed_date <= today
+            except ValueError:
+                return False
+        
+        missing_dates_until_today = list(filter(is_past_or_today, missing_dates))
+        
+        if not missing_dates_until_today:
+            print("No missing journal entries found for past dates.")
+            return
+            
+        print(f"Found {len(missing_dates_until_today)} missing journal entries for past dates.")
+        
+        for date_str in missing_dates_until_today:
             date_str_formatted = datetime.strptime(date_str, '%Y-%m-%d').strftime('%Y-%m-%d (%A)')
             print(f"Creating journal entry for {date_str_formatted}...")
 
