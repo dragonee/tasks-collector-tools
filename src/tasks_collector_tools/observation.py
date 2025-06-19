@@ -51,13 +51,15 @@ import subprocess
 
 import requests
 from requests.auth import HTTPBasicAuth
-
+from requests.exceptions import ConnectionError, ReadTimeout
 
 from pathlib import Path
 
 from .config.tasks import TasksConfigFile
 
-from .utils import sanitize_fields
+from .utils import sanitize_fields, SHORT_TIMEOUT
+
+OBSERVATIONS_BACKUP_FILE = os.path.expanduser(os.path.join('~', '.tasks', 'observations_backup.json'))
 
 
 def template_from_arguments(arguments):
@@ -94,22 +96,38 @@ def add_stack_to_payload(payload, name, lines):
 def list_observations(config, chars=70, number=10):
     url = '{}/observation-api/?page_size={}'.format(config.url, number)
 
-    r = requests.get(url, auth=HTTPBasicAuth(config.user, config.password))
+    try:
+        r = requests.get(url, auth=HTTPBasicAuth(config.user, config.password), timeout=SHORT_TIMEOUT)
 
-    if r.ok:
+        if not r.ok:
+            try:
+                print(json.dumps(r.json(), indent=4, sort_keys=True))
+            except json.decoder.JSONDecodeError:
+                print("HTTP {}\n{}".format(r.status_code, r.text))
+
+            sys.exit(1)
+
         response = r.json()
 
-        for item in response['results']:
-            print("#{}: {}".format(
-                item['id'],
-                re.sub(r'\s+', ' ', item['situation'])[:chars]
-            ))
-
-    else:
+        with open(OBSERVATIONS_BACKUP_FILE, 'w') as f:
+            json.dump(response, f)
+    except (ConnectionError, ReadTimeout):
         try:
-            print(json.dumps(r.json(), indent=4, sort_keys=True))
-        except json.decoder.JSONDecodeError:
-            print("HTTP {}\n{}".format(r.status_code, r.text))
+            with open(OBSERVATIONS_BACKUP_FILE, 'r') as f:
+                response = json.load(f)
+        except (FileNotFoundError, json.JSONDecodeError):
+            print("Network unavailable and no local backup file found.")
+            sys.exit(1)
+
+    if not 'results' in response:
+        print("No observations found.")
+        return
+
+    for item in response['results']:
+        print("#{}: {}".format(
+            item['id'],
+            re.sub(r'\s+', ' ', item['situation'])[:chars]
+        ))
         
 
 def main():
