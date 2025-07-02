@@ -1,9 +1,9 @@
 - [ ] offline mode for observation and update tools if no internet connectivity is present (a single json store of objects to be sent... or markdown files)
-- [ ] Save % lines or * lines or some other mark (maybe quote signs) as Good points in Reflection
+- [x] Save [x] lines or some other mark (maybe quote signs) as Good points in Reflection
 - [x] observationdump dumps Updates
 - [x] observationdump dumps Events?
 - [x] observationdump dumps Closed
-- [ ] habits (ask for all habits occured/missed/skip for the day)
+- [x] habits (ask for all habits occured/missed/skip for the day)
 - [ ] tasks downloads habits and journal shows them
 - [x] convert observationupdate to journal
   - [ ] Should we remove event_stream_id events when we push to journal?
@@ -17,18 +17,18 @@
 - [ ] Eventdump: fix `- #` problems, some markdown implementations are treating it as a heading in list
 - [ ] Use rlcompleter for named observations
 - [ ] yy for multiple habits tracked in habits tool
-- [ ] Add reflection tool
+- [x] Add reflection tool
   - [x] Add reflectiondump tool
-  - [ ] Daily mode:
-    - Shows eventdump for today
-    - Allows to modify Reflection for today
   - [x] Weekly mode:
     - Shows eventdump for last 7 days
     - Allows to modify Reflection for weekly thread
-  - [ ] Monthly mode:
+  - [x] Monthly mode:
     - [x] Shows reflections on weekly thread
-    - [ ] Shows breakthroughs
+    - [x] Shows breakthroughs
     - [x] Allows to modify Reflection for monthly thread
-- [ ] Two-stage reflection:
+- [x] Two-stage reflection:
   - First stage – get interesting points from reflection
   - Second stage - write a journal entry based on reflection
+- [ ] Reflection Daily mode – do we need it?
+  - Shows eventdump for today
+  - Allows to modify Reflection for today

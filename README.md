@@ -58,6 +58,7 @@ Options:
     -Y, --yesterday  Use yesterday's date for the journal entry.
     -t THREAD, --thread THREAD  Use this thread [default: Daily]
     -f FILE, --file FILE  Use this file instead of the generated template.
+    -L, --today      List journals from today.
     -h, --help       Show this message.
     --version        Show version information.
 ```
@@ -109,7 +110,8 @@ Usage:
 
 Options:
     -a, --all        Track all habits.
-    -Y, --yesterday      Set the date to yesterday.
+    -d, --date DATE  Use this date for tracking habits.
+    -Y, --yesterday  Set the date to yesterday.
     -l, --list       List habits
     -o, --output FILENAME  If listing, output to file [default: -]
     -h, --help       Show this message.
