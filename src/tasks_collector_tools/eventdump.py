@@ -13,15 +13,9 @@ Options:
 
 VERSION = '1.0'
 
-import json, os, re, sys, pprint
-
 from docopt import docopt
 
 from datetime import datetime, date, timedelta
-
-import tempfile
-
-import subprocess
 
 import requests
 from requests.auth import HTTPBasicAuth
@@ -30,23 +24,19 @@ from pathlib import Path
 
 from .config.tasks import TasksConfigFile
 
-from slugify import slugify
-
-from urllib.parse import urlencode
-
 from dateutil.parser import parse
 
-from dataclasses import asdict, field
+from textwrap import fill
 
-import re
-
-from textwrap import dedent, fill
-
-from pydantic import BaseModel
-from typing import List, Optional, Literal, Union
+from typing import List
 
 from collections import Counter
 from .utils import render_template
+from .models import (
+    JournalAdded, HabitTracked, ObservationEvent,
+    ObservationMade, ObservationClosed, Result
+)
+from .presenters import get_presenter, get_plan_presenter, get_reflection_presenter
 
 EVENT_TEMPLATE = """
 ### {{ resourcetype }}: {{ published }}
@@ -57,14 +47,14 @@ EVENT_TEMPLATE = """
 
 TEMPLATE = """
 # {{ date }}
-{% if plan.has_focus %}
-{{ plan.focus_list }}
+{% if plan and plan.model.has_focus %}
+{{ plan.focus_list() }}
 {% endif %}
 
-{% if plan.has_want %}
+{% if plan and plan.model.has_want %}
 ## Want
 
-{{ plan.want_list }}
+{{ plan.want_list() }}
 {% endif %}
 
 {% if habits %}
@@ -86,17 +76,17 @@ TEMPLATE = """
 ## Reflection
 {% endif %}
 
-{% if reflection.has_good %}
+{% if reflection and reflection.model.has_good %}
 {{ reflection.good_list }}
 {% endif %}
 
-{% if reflection.has_better %}
+{% if reflection and reflection.model.has_better %}
 ### Better
 
 {{ reflection.better_list }}
 {% endif %}
 
-{% if reflection.has_best %}
+{% if reflection and reflection.model.has_best %}
 ### Best
 
 {{ reflection.best_list }}
@@ -110,289 +100,6 @@ def first_line(text):
         return splitted[0].rstrip().rstrip('.…') + '…'
 
     return text
-
-
-class BaseEvent(BaseModel):
-    id: int
-    published: datetime
-    resourcetype: str
-
-    template: str = None
-
-    def render(self):
-        return render_template(self.get_template(), self)
-    
-    def nice_published(self):
-        return self.published.strftime('%H:%M')
-    
-    base_template: str = """
-    ### {{ nice_published }}: {{ resourcetype }}
-    """
-
-    def get_template(self):
-        return dedent(self.base_template) + '\n' + dedent(self.template)
-
-class Habit(BaseModel):
-    id: int
-    name: str
-    description: Optional[str]
-    slug: str
-    tagname: str
-
-RE_SOMETIME = re.compile(r'\d{1,2}:\d{2}(?::\d{2})?')
-
-class JournalAdded(BaseEvent):
-    resourcetype: Literal['JournalAdded']
-    comment: str
-    tags: List[str]
-
-    # Added after removed Observation events from parsing
-    base_template: str = """
-    ### {{ nice_published }}
-    """
-
-    template: str = """    
-    {{ comment }}
-    """
-
-    def nice_published(self):
-        published_time = self.published.time()
-
-        if published_time.hour == 23 and published_time.minute == 59 and published_time.second == 59:
-            return 'At the end of the day...'
-
-        if published_time.hour == 0 and published_time.minute == 0 and published_time.second == 0:
-            match = RE_SOMETIME.search(self.comment)
-
-            if match:
-                return match.group(0)
-
-            return 'Sometime that day...'
-
-        return super().nice_published()
-
-class HabitTracked(BaseEvent):
-    resourcetype: Literal['HabitTracked']
-    note: str
-    occured: bool
-    habit: Habit
-
-    def render(self):
-        if self.nice_published() == '00:00':
-            return f'- {self.get_note()}'
-
-        return f'- {self.nice_published()}: {self.get_note()}'
-
-    def get_note(self):
-        if not self.note:
-            occured_str = '#' if self.occured else '!'
-
-            return f'{occured_str}{self.habit.tagname}'
-        
-        return self.note
-
-class ObservationEvent(BaseEvent):
-    url: str
-
-class ObservationMade(ObservationEvent):
-    resourcetype: Literal['ObservationMade']
-    event_stream_id: str
-    type: str
-    situation: str
-    interpretation: Optional[str]
-    approach: Optional[str]
-
-    template: str = """    
-    {{ situation }}
-    {% if interpretation %}
-    ### Interpretation
-    
-    {{ interpretation }}
-    {% endif %}
-    {% if approach %}
-    ### Approach
-
-    {{ approach }}
-    {% endif %}
-    """
-
-class ObservationUpdated(ObservationEvent):
-    resourcetype: Literal['ObservationUpdated']
-    event_stream_id: str
-    observation_id: Optional[int]
-    situation_at_creation: str
-    comment: str
-
-    base_template: str = """
-    ### {{ nice_published }}: {{ resourcetype }} ({{ observation }})
-    """
-
-    template: str = """
-    {% if situation_at_creation %}
-    > {{ situation_line }}
-    {% endif %}
-    {{ comment }}
-    """
-
-    def situation_line(self):
-        return first_line(self.situation_at_creation)
-
-    def observation(self):
-        if self.observation_id:
-            return f'#{self.observation_id}'
-        
-        return self.event_stream_id
-
-class ObservationRecontextualized(ObservationEvent):
-    resourcetype: Literal['ObservationRecontextualized']
-    event_stream_id: str
-    situation: str
-    old_situation: str
-
-    template: str = """    
-    {{ situation }}
-    """
-
-class ObservationReinterpreted(ObservationEvent):
-    resourcetype: Literal['ObservationReinterpreted']
-    event_stream_id: str
-    interpretation: Optional[str]
-    old_interpretation: Optional[str]
-    situation_at_creation: str
-
-    template: str = """
-    {% if situation_at_creation %}
-    > {{ situation_line }}
-    {% endif %}
-    {{ interpretation }}
-    """
-
-    def situation_line(self):
-        return first_line(self.situation_at_creation)
-
-class ObservationReflectedUpon(ObservationEvent):
-    resourcetype: Literal['ObservationReflectedUpon']
-    event_stream_id: str
-    approach: Optional[str]
-    old_approach: Optional[str]
-    situation_at_creation: str
-
-    template: str = """
-    {% if situation_at_creation %}
-    > {{ situation_line }}
-    {% endif %}
-    {{ approach }}
-    """
-
-    def situation_line(self):
-        return first_line(self.situation_at_creation)   
-
-class ObservationClosed(ObservationEvent):
-    resourcetype: Literal['ObservationClosed']
-    event_stream_id: str
-    type: str
-    situation: str
-    interpretation: Optional[str]
-    approach: Optional[str]
-
-    template: str = """
-    {{ situation }}
-
-    {% if interpretation %}
-    ### Interpretation
-
-    {{ interpretation }}
-    {% endif %}
-    {% if approach %}
-    ### Approach
-
-    {{ approach }}
-    {% endif %}
-    """
-
-def listize(text):
-    return '\n'.join(f'- {line.lstrip("-")}' for line in text.split('\n') if line.strip())
-
-def not_empty(text):
-    return text and text.strip() != '' and text.strip() != '?'
-
-class Plan(BaseModel):
-    id: int
-    focus: str
-    want: str
-    pub_date: date
-
-    def empty(self):
-        return not self.has_want() and not self.has_focus()
-
-    def has_want(self):
-        return not_empty(self.want)
-
-    def has_focus(self):
-        return not_empty(self.focus)
-    
-    def want_list(self):
-        return listize(self.want)
-    
-    def focus_list(self):
-        return listize(self.focus)
-
-class Reflection(BaseModel):
-    id: int
-    good: str
-    better: str
-    best: str
-    pub_date: date
-
-    def empty(self):
-        return not self.has_good() and not self.has_better() and not self.has_best()
-
-    def has_good(self):
-        return not_empty(self.good)
-    
-    def has_better(self):
-        return not_empty(self.better)
-    
-    def has_best(self):
-        return not_empty(self.best)
-    
-    def good_list(self):
-        return listize(self.good)
-    
-    def better_list(self):
-        return listize(self.better)
-    
-    def best_list(self):
-        return listize(self.best)
-
-Event = Union[
-    JournalAdded, 
-    HabitTracked, 
-    ObservationMade, 
-    ObservationUpdated, 
-    ObservationRecontextualized, 
-    ObservationReinterpreted, 
-    ObservationReflectedUpon, 
-    ObservationClosed
-]
-
-class Result(BaseModel):
-    date: date
-    events: List[Event]
-    plan: Optional[Plan]
-    reflection: Optional[Reflection]
-
-    def empty(self):
-        if self.events:
-            return False
-        
-        if self.plan and not self.plan.empty():
-            return False
-        
-        if self.reflection and not self.reflection.empty():
-            return False
-        
-        return True
 
 
 def parse_result(result_data: dict) -> Result:
@@ -507,12 +214,16 @@ def render_daily_events(result: Result):
     observations = [event for event in result.events if isinstance(event, ObservationEvent)]
     observation_stats = ObservationStatistics(observations)
 
+    # Create presenters for plan and reflection
+    plan_presenter = get_plan_presenter(result.plan) if result.plan else None
+    reflection_presenter = get_reflection_presenter(result.reflection) if result.reflection else None
+
     dct = {
         'date': result.date.strftime('%-d %B (%A)'),
-        'habits': '\n'.join(event.render() for event in result.events if isinstance(event, HabitTracked)),
-        'events': '\n'.join(event.render() for event in result.events if isinstance(event, JournalAdded)),
-        'plan': result.plan,
-        'reflection': result.reflection,
+        'habits': '\n'.join(get_presenter(event).render() for event in result.events if isinstance(event, HabitTracked)),
+        'events': '\n'.join(get_presenter(event).render() for event in result.events if isinstance(event, JournalAdded)),
+        'plan': plan_presenter,
+        'reflection': reflection_presenter,
         'observation_stats': observation_stats.get_context(),
     }
 

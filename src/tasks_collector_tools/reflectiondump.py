@@ -46,11 +46,19 @@ import re
 
 from textwrap import dedent, fill
 
-from pydantic import BaseModel
-from typing import List, Optional, Literal, Union, Type
+from typing import Type, List
 
 from collections import Counter
 from .utils import render_template
+from .models import (
+    Habit, JournalAdded, HabitTracked, ObservationEvent,
+    ObservationMade, ObservationUpdated, ObservationRecontextualized,
+    ObservationReinterpreted, ObservationReflectedUpon, ObservationClosed,
+    Plan, Reflection, Event, Result
+)
+from .presenters import (
+    get_presenter, get_plan_presenter, get_reflection_presenter
+)
 
 
 EVENT_TEMPLATE = """
@@ -114,291 +122,8 @@ def first_line(text):
 
     return text
 
+TIME_FORMAT = '(%a) %H:%M'
 
-class BaseEvent(BaseModel):
-    id: int
-    published: datetime
-    resourcetype: str
-
-    template: str = None
-
-    def render(self):
-        return render_template(self.get_template(), self)
-    
-    def nice_published(self):
-        return self.published.strftime('(%a) %H:%M')
-    
-    base_template: str = """
-    ### {{ nice_published }}: {{ resourcetype }}
-    """
-
-    def get_template(self):
-        return dedent(self.base_template) + '\n' + dedent(self.template)
-
-class Habit(BaseModel):
-    id: int
-    name: str
-    description: Optional[str]
-    slug: str
-    tagname: str
-
-RE_SOMETIME = re.compile(r'\d{1,2}:\d{2}(?::\d{2})?')
-
-class JournalAdded(BaseEvent):
-    resourcetype: Literal['JournalAdded']
-    comment: str
-    tags: List[str]
-
-    # Added after removed Observation events from parsing
-    base_template: str = """
-    ### {{ nice_published }}
-    """
-
-    template: str = """    
-    {{ comment }}
-    """
-
-    def nice_published(self):
-        published_time = self.published.time()
-
-        if published_time.hour == 23 and published_time.minute == 59 and published_time.second == 59:
-            return 'At the end of the day...'
-
-        if published_time.hour == 0 and published_time.minute == 0 and published_time.second == 0:
-            match = RE_SOMETIME.search(self.comment)
-
-            if match:
-                return match.group(0)
-
-            return 'Sometime that day...'
-
-        return super().nice_published()
-
-class HabitTracked(BaseEvent):
-    resourcetype: Literal['HabitTracked']
-    note: str
-    occured: bool
-    habit: Habit
-
-    def render(self):
-        if self.nice_published() == '00:00':
-            return f'- {self.get_note()}'
-
-        return f'- {self.nice_published()}: {self.get_note()}'
-
-    def get_note(self):
-        if not self.note:
-            occured_str = '#' if self.occured else '!'
-
-            return f'{occured_str}{self.habit.tagname}'
-        
-        return self.note
-
-class ObservationEvent(BaseEvent):
-    url: str
-
-class ObservationMade(ObservationEvent):
-    resourcetype: Literal['ObservationMade']
-    event_stream_id: str
-    type: str
-    situation: str
-    interpretation: Optional[str]
-    approach: Optional[str]
-
-    template: str = """    
-    {{ situation }}
-    {% if interpretation %}
-    ### Interpretation
-    
-    {{ interpretation }}
-    {% endif %}
-    {% if approach %}
-    ### Approach
-
-    {{ approach }}
-    {% endif %}
-    """
-
-class ObservationUpdated(ObservationEvent):
-    resourcetype: Literal['ObservationUpdated']
-    event_stream_id: str
-    observation_id: Optional[int]
-    situation_at_creation: str
-    comment: str
-
-    base_template: str = """
-    ### {{ nice_published }}: {{ resourcetype }} ({{ observation }})
-    """
-
-    template: str = """
-    {% if situation_at_creation %}
-    > {{ situation_line }}
-    {% endif %}
-    {{ comment }}
-    """
-
-    def situation_line(self):
-        return first_line(self.situation_at_creation)
-
-    def observation(self):
-        if self.observation_id:
-            return f'#{self.observation_id}'
-        
-        return self.event_stream_id
-
-class ObservationRecontextualized(ObservationEvent):
-    resourcetype: Literal['ObservationRecontextualized']
-    event_stream_id: str
-    situation: str
-    old_situation: str
-
-    template: str = """    
-    {{ situation }}
-    """
-
-class ObservationReinterpreted(ObservationEvent):
-    resourcetype: Literal['ObservationReinterpreted']
-    event_stream_id: str
-    interpretation: Optional[str]
-    old_interpretation: Optional[str]
-    situation_at_creation: str
-
-    template: str = """
-    {% if situation_at_creation %}
-    > {{ situation_line }}
-    {% endif %}
-    {{ interpretation }}
-    """
-
-    def situation_line(self):
-        return first_line(self.situation_at_creation)
-
-class ObservationReflectedUpon(ObservationEvent):
-    resourcetype: Literal['ObservationReflectedUpon']
-    event_stream_id: str
-    approach: Optional[str]
-    old_approach: Optional[str]
-    situation_at_creation: str
-
-    template: str = """
-    {% if situation_at_creation %}
-    > {{ situation_line }}
-    {% endif %}
-    {{ approach }}
-    """
-
-    def situation_line(self):
-        return first_line(self.situation_at_creation)   
-
-class ObservationClosed(ObservationEvent):
-    resourcetype: Literal['ObservationClosed']
-    event_stream_id: str
-    type: str
-    situation: str
-    interpretation: Optional[str]
-    approach: Optional[str]
-
-    template: str = """
-    {{ situation }}
-
-    {% if interpretation %}
-    ### Interpretation
-
-    {{ interpretation }}
-    {% endif %}
-    {% if approach %}
-    ### Approach
-
-    {{ approach }}
-    {% endif %}
-    """
-
-# Parse - [x] or - [~] or - [^] or - [ ] and strip it from beginning of line
-CUTREGEX = re.compile(r'^\s*\-\s*(?:\[x\^\~\s\])?\s*')
-
-def listize(text, prefix='- ', cutregex=CUTREGEX):
-    return '\n'.join(f'{prefix}{cutregex.sub("", line)}' for line in text.split('\n') if line.strip())
-
-def not_empty(text):
-    return text and text.strip() != '' and text.strip() != '?'
-
-class Plan(BaseModel):
-    id: int
-    focus: str
-    want: str
-    pub_date: date
-
-    def empty(self):
-        return not self.has_want() and not self.has_focus()
-
-    def has_want(self):
-        return not_empty(self.want)
-
-    def has_focus(self):
-        return not_empty(self.focus)
-    
-    def want_list(self, prefix='- '):
-        return listize(self.want, prefix=prefix)
-    
-    def focus_list(self, prefix='- '):
-        return listize(self.focus, prefix=prefix)
-
-class Reflection(BaseModel):
-    id: int
-    good: str
-    better: str
-    best: str
-    pub_date: date
-
-    def empty(self):
-        return not self.has_good() and not self.has_better() and not self.has_best()
-
-    def has_good(self):
-        return not_empty(self.good)
-    
-    def has_better(self):
-        return not_empty(self.better)
-    
-    def has_best(self):
-        return not_empty(self.best)
-    
-    def good_list(self, prefix='- '):
-        return listize(self.good, prefix=prefix)
-    
-    def better_list(self, prefix='- '):
-        return listize(self.better, prefix=prefix)
-    
-    def best_list(self, prefix='- '):
-        return listize(self.best, prefix=prefix)
-
-Event = Union[
-    JournalAdded, 
-    HabitTracked, 
-    ObservationMade, 
-    ObservationUpdated, 
-    ObservationRecontextualized, 
-    ObservationReinterpreted, 
-    ObservationReflectedUpon, 
-    ObservationClosed
-]
-
-class Result(BaseModel):
-    date: date
-    events: List[Event]
-    plan: Optional[Plan]
-    reflection: Optional[Reflection]
-
-    def empty(self):
-        if self.events:
-            return False
-        
-        if self.plan and not self.plan.empty():
-            return False
-        
-        if self.reflection and not self.reflection.empty():
-            return False
-        
-        return True
 
 def parse_result(result_data: dict) -> Result:
     return Result.model_validate(result_data)
@@ -539,7 +264,6 @@ class HabitStatistics:
             )
         }
         
-
 class ResultAggregator:
     results: List[Result]
 
@@ -568,20 +292,24 @@ class ResultAggregator:
         return ObservationStatistics(self.get_observation_events())
     
     def get_reflection_context(self):
+        presenters = [get_reflection_presenter(result.reflection) for result in self.results if result.reflection]
+
         return {
-            'good': '\n\n'.join(result.reflection.good_list(prefix='- [ ] ') for result in self.results if result.reflection),
-            'better': '\n\n'.join(result.reflection.better_list(prefix='- [ ] ') for result in self.results if result.reflection),
-            'best': '\n\n'.join(result.reflection.best_list(prefix='- [ ] ') for result in self.results if result.reflection),
+            'good': '\n\n'.join(presenter.good_list(prefix='- [ ] ') for presenter in presenters),
+            'better': '\n\n'.join(presenter.better_list(prefix='- [ ] ') for presenter in presenters),
+            'best': '\n\n'.join(presenter.best_list(prefix='- [ ] ') for presenter in presenters),
         }
     
     def get_plan_context(self):
+        presenters = [get_plan_presenter(result.plan) for result in self.results if result.plan]
+
         return {
-            'focus': '\n\n'.join(result.plan.focus_list(prefix='- [ ] ') for result in self.results if result.plan),
-            'want': '\n\n'.join(result.plan.want_list(prefix='- [ ] ') for result in self.results if result.plan),
+            'focus': '\n\n'.join(presenter.focus_list(prefix='- [ ] ') for presenter in presenters),
+            'want': '\n\n'.join(presenter.want_list(prefix='- [ ] ') for presenter in presenters),
         }
 
     def _render_events(self, events: List[Event], separator='\n'):
-        return separator.join(event.render() for event in events)
+        return separator.join(get_presenter(event, time_format=TIME_FORMAT).render() for event in events)
 
     def render_habit_events(self):
         return self._render_events(self.get_habit_events())
