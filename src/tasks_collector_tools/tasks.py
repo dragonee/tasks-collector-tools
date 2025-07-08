@@ -45,6 +45,8 @@ from .quick_notes import get_quick_notes_as_string
 from .habits import add_habit
 from .plans import get_plan_for_today
 
+import re
+
 def get_input_until(predicate, prompt=None):
     text = None
     
@@ -159,9 +161,19 @@ def run_single_task(config, default_thread):
     add_task(config, default_thread, original_text)
 
 
+RE_THREAD = re.compile(r'^(.*?)\s*>\s*([A-Za-z0-9_-]+)\s*$')
+
 def add_task(config, default_thread, text):
+    match = RE_THREAD.match(text)
+
+    if match:
+        text = match.group(1).strip()
+        thread = match.group(2).strip()
+    else:
+        thread = default_thread
+
     payload = {
-        'thread-name': default_thread,
+        'thread-name': thread,
         'text': text,
     }
 
@@ -170,7 +182,7 @@ def add_task(config, default_thread, text):
     r = requests.post(url, json=payload, auth=HTTPBasicAuth(config.user, config.password))
 
     if r.ok:
-        print(GOTOURL.format(url=config.url, name=default_thread).strip())
+        print(GOTOURL.format(url=config.url, name=thread).strip())
     else:
         try:
             print(json.dumps(r.json(), indent=4, sort_keys=True))

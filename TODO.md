@@ -32,3 +32,4 @@
 - [ ] Reflection Daily mode – do we need it?
   - Shows eventdump for today
   - Allows to modify Reflection for today
+- [x] >Daily should send a task to a daily list
