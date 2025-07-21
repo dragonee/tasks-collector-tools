@@ -52,9 +52,7 @@ from collections import Counter
 from .utils import render_template
 from .models import (
     Habit, JournalAdded, HabitTracked, ObservationEvent,
-    ObservationMade, ObservationUpdated, ObservationRecontextualized,
-    ObservationReinterpreted, ObservationReflectedUpon, ObservationClosed,
-    Plan, Reflection, Event, Result
+    ObservationMade, ObservationClosed, Event, Result
 )
 from .presenters import (
     get_presenter, get_plan_presenter, get_reflection_presenter

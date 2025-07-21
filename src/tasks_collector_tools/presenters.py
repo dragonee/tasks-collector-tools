@@ -9,6 +9,7 @@ from .models import (
     BaseEvent, Habit, JournalAdded, HabitTracked, ObservationEvent,
     ObservationMade, ObservationUpdated, ObservationRecontextualized,
     ObservationReinterpreted, ObservationReflectedUpon, ObservationClosed,
+    ProjectedOutcomeMade, ProjectedOutcomeRedefined, ProjectedOutcomeRescheduled, ProjectedOutcomeClosed,
     Plan, Reflection, Event
 )
 
@@ -170,6 +171,66 @@ class ObservationClosedPresenter(BaseEventPresenter):
     {% endif %}
     """
 
+class ProjectedOutcomeMadePresenter(BaseEventPresenter):
+    template: str = """
+    **{{ event.name }}**
+    {% if event.description %}
+    
+    {{ event.description }}
+    {% endif %}
+    {% if resolved_by_date %}
+    
+    *Resolve by: {{ resolved_by_date }}*
+    {% endif %}
+    {% if event.success_criteria %}
+    
+    ### Success Criteria
+    {{ event.success_criteria }}
+    {% endif %}
+    """
+
+    def resolved_by_date(self):
+        return self.event.resolved_by.strftime('%Y-%m-%d') if self.event.resolved_by else None
+
+class ProjectedOutcomeRedefinedPresenter(BaseEventPresenter):
+    template: str = """
+    {% if event.new_name %}**{{ event.new_name }}**{% endif %}{% if event.old_name %} (was: *{{ event.old_name }}*){% endif %}
+    {% if event.new_description %}
+    
+    {{ event.new_description }}
+    {% endif %}
+    {% if event.new_success_criteria %}
+    
+    ### Success Criteria
+    {{ event.new_success_criteria }}
+    {% endif %}
+    """
+
+class ProjectedOutcomeRescheduledPresenter(BaseEventPresenter):
+    template: str = """
+    Rescheduled{% if old_resolved_by_date and new_resolved_by_date %} from {{ old_resolved_by_date }} to {{ new_resolved_by_date }}{% elif new_resolved_by_date %} to {{ new_resolved_by_date }}{% elif old_resolved_by_date %} (was {{ old_resolved_by_date }}){% endif %}
+    """
+
+    def old_resolved_by_date(self):
+        return self.event.old_resolved_by.strftime('%Y-%m-%d') if self.event.old_resolved_by else None
+
+    def new_resolved_by_date(self):
+        return self.event.new_resolved_by.strftime('%Y-%m-%d') if self.event.new_resolved_by else None
+
+class ProjectedOutcomeClosedPresenter(BaseEventPresenter):
+    template: str = """
+    **{{ event.name }}** ✓
+    {% if event.description %}
+    
+    {{ event.description }}
+    {% endif %}
+    {% if event.success_criteria %}
+    
+    ### Success Criteria
+    {{ event.success_criteria }}
+    {% endif %}
+    """
+
 # Presenter classes for Plan and Reflection
 class BaseModelPresenter:
     def __init__(self, model):
@@ -211,6 +272,14 @@ def get_presenter_class(event: Event):
             return ObservationReflectedUponPresenter
         case ObservationClosed():
             return ObservationClosedPresenter
+        case ProjectedOutcomeMade():
+            return ProjectedOutcomeMadePresenter
+        case ProjectedOutcomeRedefined():
+            return ProjectedOutcomeRedefinedPresenter
+        case ProjectedOutcomeRescheduled():
+            return ProjectedOutcomeRescheduledPresenter
+        case ProjectedOutcomeClosed():
+            return ProjectedOutcomeClosedPresenter
         case _:
             return BaseEventPresenter
 
