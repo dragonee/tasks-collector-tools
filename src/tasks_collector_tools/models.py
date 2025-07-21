@@ -89,6 +89,46 @@ class ObservationClosed(ObservationEvent):
     approach: Optional[str]
 
 
+class ProjectedOutcomeMade(BaseEvent):
+    resourcetype: Literal['ProjectedOutcomeMade']
+    event_stream_id: str
+    thread: str
+    name: str
+    description: Optional[str]
+    resolved_by: Optional[datetime]
+    success_criteria: Optional[str]
+
+
+class ProjectedOutcomeRedefined(BaseEvent):
+    resourcetype: Literal['ProjectedOutcomeRedefined']
+    event_stream_id: str
+    thread: str
+    old_name: Optional[str]
+    new_name: Optional[str]
+    old_description: Optional[str]
+    new_description: Optional[str]
+    old_success_criteria: Optional[str]
+    new_success_criteria: Optional[str]
+
+
+class ProjectedOutcomeRescheduled(BaseEvent):
+    resourcetype: Literal['ProjectedOutcomeRescheduled']
+    event_stream_id: str
+    thread: str
+    old_resolved_by: Optional[datetime]
+    new_resolved_by: Optional[datetime]
+
+
+class ProjectedOutcomeClosed(BaseEvent):
+    resourcetype: Literal['ProjectedOutcomeClosed']
+    event_stream_id: str
+    thread: str
+    name: str
+    description: Optional[str]
+    resolved_by: Optional[datetime]
+    success_criteria: Optional[str]
+
+
 class Plan(BaseModel):
     id: int
     focus: str
@@ -133,7 +173,11 @@ Event = Union[
     ObservationRecontextualized, 
     ObservationReinterpreted, 
     ObservationReflectedUpon, 
-    ObservationClosed
+    ObservationClosed,
+    ProjectedOutcomeMade,
+    ProjectedOutcomeRedefined,
+    ProjectedOutcomeRescheduled,
+    ProjectedOutcomeClosed
 ]
 
 class Result(BaseModel):
