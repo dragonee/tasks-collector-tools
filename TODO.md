@@ -33,3 +33,5 @@
   - Shows eventdump for today
   - Allows to modify Reflection for today
 - [x] >Daily should send a task to a daily list
+- [ ] Better emoji support
+- [ ] Either handle projected outcome events or remove projected outcome events from events in tasks-collector
