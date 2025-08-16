@@ -38,8 +38,11 @@ import sys
 
 try:
     import readline
+    import os
+    import atexit
+    readline_available = True
 except ImportError:
-    pass
+    readline_available = False
 
 from .quick_notes import get_quick_notes_as_string
 from .habits import add_habit
@@ -64,6 +67,35 @@ Quit by pressing Ctrl+D or Ctrl+C.
 """
 
 DEFAULT_THREAD = 'Inbox'
+
+
+def setup_readline_history(config):
+    """Set up readline history functionality."""
+    if not readline_available:
+        return
+    
+    # Set history file path
+    history_file = os.path.expanduser('~/.tasks_history')
+    
+    # Load existing history
+    try:
+        readline.read_history_file(history_file)
+    except FileNotFoundError:
+        pass  # No history file exists yet
+    except PermissionError:
+        pass  # Can't read history file
+    
+    # Set maximum history size
+    readline.set_history_length(1000)
+    
+    # Save history on exit
+    def save_history():
+        try:
+            readline.write_history_file(history_file)
+        except PermissionError:
+            pass  # Can't write history file
+    
+    atexit.register(save_history)
 
 
 def list_to_points(list):
@@ -194,6 +226,9 @@ def main():
     arguments = docopt(__doc__ + help(), version='1.0.2')
 
     config = TasksConfigFile()
+    
+    # Set up readline history
+    setup_readline_history(config)
 
     print("Connected to Tasks Collector at {}".format(config.url))
 
