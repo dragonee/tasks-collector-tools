@@ -84,13 +84,21 @@ def render_template(template, context):
         return str(getter(context, var_name.split('.'), default=''))
 
     def eval_if(match):
+        def parse_condition(condition_str):
+            # Handle "and" conditions like "plan and plan.model.has_focus"
+            if ' and ' in condition_str:
+                parts = condition_str.split(' and ')
+                return all(getter(context, part.strip().split('.')) for part in parts)
+            # Handle simple dot notation
+            return getter(context, condition_str.split('.'))
+        
         condition = match.group(1)
         true_part = match.group(2)
         try:
             false_part = match.group(3)
         except IndexError:
             false_part = ''
-        return true_part if getter(context, condition.split('.')) else false_part
+        return true_part if parse_condition(condition) else false_part
 
     template = re.sub(r'\{% if (.*?) %\}(.*?)\{% else %\}(.*?)\{% endif %\}', eval_if, template, flags=re.DOTALL)
     template = re.sub(r'\{% if (.*?) %\}(.*?)\{% endif %\}', eval_if, template, flags=re.DOTALL)

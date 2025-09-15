@@ -37,12 +37,11 @@ class HabitTracked(BaseEvent):
 
 
 class ObservationEvent(BaseEvent):
-    url: str
-
+    event_stream_id: str
 
 class ObservationMade(ObservationEvent):
+    url: str
     resourcetype: Literal['ObservationMade']
-    event_stream_id: str
     type: str
     situation: str
     interpretation: Optional[str]
@@ -50,43 +49,54 @@ class ObservationMade(ObservationEvent):
 
 
 class ObservationUpdated(ObservationEvent):
+    url: str
     resourcetype: Literal['ObservationUpdated']
-    event_stream_id: str
     observation_id: Optional[int]
     situation_at_creation: str
     comment: str
 
 
 class ObservationRecontextualized(ObservationEvent):
+    url: str
     resourcetype: Literal['ObservationRecontextualized']
-    event_stream_id: str
     situation: str
     old_situation: str
 
 
 class ObservationReinterpreted(ObservationEvent):
+    url: str
     resourcetype: Literal['ObservationReinterpreted']
-    event_stream_id: str
     interpretation: Optional[str]
     old_interpretation: Optional[str]
     situation_at_creation: str
 
 
 class ObservationReflectedUpon(ObservationEvent):
+    url: str
     resourcetype: Literal['ObservationReflectedUpon']
-    event_stream_id: str
     approach: Optional[str]
     old_approach: Optional[str]
     situation_at_creation: str
 
 
 class ObservationClosed(ObservationEvent):
+    url: str
     resourcetype: Literal['ObservationClosed']
-    event_stream_id: str
     type: str
     situation: str
     interpretation: Optional[str]
     approach: Optional[str]
+
+
+class ObservationAttached(BaseEvent):
+    resourcetype: Literal['ObservationAttached']
+    other_event_stream_id: str
+    observation: Optional[int]
+
+
+class ObservationDetached(BaseEvent):
+    resourcetype: Literal['ObservationDetached']
+    other_event_stream_id: str
 
 
 class ProjectedOutcomeMade(BaseEvent):
@@ -174,6 +184,8 @@ Event = Union[
     ObservationReinterpreted, 
     ObservationReflectedUpon, 
     ObservationClosed,
+    ObservationAttached,
+    ObservationDetached,
     ProjectedOutcomeMade,
     ProjectedOutcomeRedefined,
     ProjectedOutcomeRescheduled,
