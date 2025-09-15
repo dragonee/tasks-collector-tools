@@ -84,13 +84,36 @@ def render_template(template, context):
         return str(getter(context, var_name.split('.'), default=''))
 
     def eval_if(match):
+        def parse_condition(condition_str):
+            # Handle both AND and OR conditions with AND having precedence
+            # Split by OR first (lower precedence)
+            or_parts = re.split(r'\s+or\s+', condition_str)
+            
+            if len(or_parts) > 1:
+                # OR condition: any part can be true
+                return any(parse_and_condition(part.strip()) for part in or_parts)
+            else:
+                # No OR, just handle AND
+                return parse_and_condition(condition_str)
+        
+        def parse_and_condition(condition_str):
+            # Split by AND (higher precedence)
+            and_parts = re.split(r'\s+and\s+', condition_str)
+            
+            if len(and_parts) > 1:
+                # AND condition: all parts must be true
+                return all(getter(context, part.strip().split('.')) for part in and_parts)
+            else:
+                # Simple dot notation
+                return getter(context, condition_str.strip().split('.'))
+        
         condition = match.group(1)
         true_part = match.group(2)
         try:
             false_part = match.group(3)
         except IndexError:
             false_part = ''
-        return true_part if getter(context, condition.split('.')) else false_part
+        return true_part if parse_condition(condition) else false_part
 
     template = re.sub(r'\{% if (.*?) %\}(.*?)\{% else %\}(.*?)\{% endif %\}', eval_if, template, flags=re.DOTALL)
     template = re.sub(r'\{% if (.*?) %\}(.*?)\{% endif %\}', eval_if, template, flags=re.DOTALL)

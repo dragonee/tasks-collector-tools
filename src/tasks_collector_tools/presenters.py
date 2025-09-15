@@ -9,6 +9,7 @@ from .models import (
     BaseEvent, Habit, JournalAdded, HabitTracked, ObservationEvent,
     ObservationMade, ObservationUpdated, ObservationRecontextualized,
     ObservationReinterpreted, ObservationReflectedUpon, ObservationClosed,
+    ObservationAttached, ObservationDetached,
     ProjectedOutcomeMade, ProjectedOutcomeRedefined, ProjectedOutcomeRescheduled, ProjectedOutcomeClosed,
     Plan, Reflection, Event
 )
@@ -171,6 +172,21 @@ class ObservationClosedPresenter(BaseEventPresenter):
     {% endif %}
     """
 
+class ObservationAttachedPresenter(BaseEventPresenter):
+    template: str = """
+    Attached observation {{ observation_ref }} to thread {{ event.thread }}
+    """
+
+    def observation_ref(self):
+        if self.event.observation:
+            return f"#{self.event.observation}"
+        return self.event.other_event_stream_id
+
+class ObservationDetachedPresenter(BaseEventPresenter):
+    template: str = """
+    Detached observation {{ event.other_event_stream_id }} from thread {{ event.thread }}
+    """
+
 class ProjectedOutcomeMadePresenter(BaseEventPresenter):
     template: str = """
     **{{ event.name }}**
@@ -272,6 +288,10 @@ def get_presenter_class(event: Event):
             return ObservationReflectedUponPresenter
         case ObservationClosed():
             return ObservationClosedPresenter
+        case ObservationAttached():
+            return ObservationAttachedPresenter
+        case ObservationDetached():
+            return ObservationDetachedPresenter
         case ProjectedOutcomeMade():
             return ProjectedOutcomeMadePresenter
         case ProjectedOutcomeRedefined():

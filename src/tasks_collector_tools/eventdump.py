@@ -48,13 +48,13 @@ EVENT_TEMPLATE = """
 TEMPLATE = """
 # {{ date }}
 {% if plan and plan.model.has_focus %}
-{{ plan.focus_list() }}
+{{ plan.focus_list }}
 {% endif %}
 
 {% if plan and plan.model.has_want %}
 ## Want
 
-{{ plan.want_list() }}
+{{ plan.want_list }}
 {% endif %}
 
 {% if habits %}
