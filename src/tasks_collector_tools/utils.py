@@ -85,12 +85,27 @@ def render_template(template, context):
 
     def eval_if(match):
         def parse_condition(condition_str):
-            # Handle "and" conditions like "plan and plan.model.has_focus"
-            if ' and ' in condition_str:
-                parts = condition_str.split(' and ')
-                return all(getter(context, part.strip().split('.')) for part in parts)
-            # Handle simple dot notation
-            return getter(context, condition_str.split('.'))
+            # Handle both AND and OR conditions with AND having precedence
+            # Split by OR first (lower precedence)
+            or_parts = re.split(r'\s+or\s+', condition_str)
+            
+            if len(or_parts) > 1:
+                # OR condition: any part can be true
+                return any(parse_and_condition(part.strip()) for part in or_parts)
+            else:
+                # No OR, just handle AND
+                return parse_and_condition(condition_str)
+        
+        def parse_and_condition(condition_str):
+            # Split by AND (higher precedence)
+            and_parts = re.split(r'\s+and\s+', condition_str)
+            
+            if len(and_parts) > 1:
+                # AND condition: all parts must be true
+                return all(getter(context, part.strip().split('.')) for part in and_parts)
+            else:
+                # Simple dot notation
+                return getter(context, condition_str.strip().split('.'))
         
         condition = match.group(1)
         true_part = match.group(2)
