@@ -9,15 +9,15 @@ These tools add CLI support to the [Tasks Collector](https://github.com/dragonee
 ```
 Connect to the Tasks Collector.
 
-Usage: 
+Usage:
     tasks [options]
 
 Options:
-    --thread THREAD  Use specific thread [default: Inbox].
+    --thread THREAD  Use specific thread.
     -h, --help       Show this message.
     --version        Show version information.
 
-By default, tasks are added to the "Inbox" thread.
+By default, tasks are added to the thread from your profile.
 By prefixing a line with `!` or `#`, it will be added to the Habit Tracker instead.
 
 Available commands:
@@ -36,6 +36,7 @@ Available commands:
   wtf
   nove
   reflect
+  thread
 
 Quit by pressing Ctrl+D or Ctrl+C.
 ```
@@ -214,13 +215,16 @@ Options:
 ```
 Dump observations to markdown files.
 
-Usage: 
+Usage:
     eventdump [options] [PATH]
 
 Options:
     -d DATE_FROM, --from FROM  Dump from specific date.
     -D DATE_TO, --to DATE_TO   Dump to specific date.
     --year YEAR      Dump specific year.
+    -T THREAD, --thread THREAD Dump specific thread.
+    --no-plans       Exclude plans from output.
+    --no-reflections  Exclude reflections from output.
     -h, --help       Show this message.
     --version        Show version information.
 ```

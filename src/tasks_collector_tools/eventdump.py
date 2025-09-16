@@ -8,6 +8,8 @@ Options:
     -D DATE_TO, --to DATE_TO   Dump to specific date.
     --year YEAR      Dump specific year.
     -T THREAD, --thread THREAD Dump specific thread.
+    --no-plans       Exclude plans from output.
+    --no-reflections  Exclude reflections from output.
     -h, --help       Show this message.
     --version        Show version information.
 """
@@ -214,13 +216,13 @@ class ObservationStatistics:
             'renders': '\n'.join(self.renders.values()),
         }
 
-def render_daily_events(result: Result):
+def render_daily_events(result: Result, print_plans=True, print_reflections=True):
     observations = [event for event in result.events if isinstance(event, ObservationEvent)]
     observation_stats = ObservationStatistics(observations)
 
     # Create presenters for plan and reflection
-    plan_presenter = get_plan_presenter(result.plan) if result.plan else None
-    reflection_presenter = get_reflection_presenter(result.reflection) if result.reflection else None
+    plan_presenter = get_plan_presenter(result.plan) if result.plan and print_plans else None
+    reflection_presenter = get_reflection_presenter(result.reflection) if result.reflection and print_reflections else None
 
     dct = {
         'date': result.date.strftime('%-d %B (%A)'),
@@ -286,7 +288,11 @@ def main():
         if result.empty():
             continue
 
-        rendered = render_daily_events(result)
+        rendered = render_daily_events(
+            result,
+            print_plans=not arguments['--no-plans'],
+            print_reflections=not arguments['--no-reflections']
+        )
 
         if path:
             delete_file_if_needed(already_deleted, directory, dt)
