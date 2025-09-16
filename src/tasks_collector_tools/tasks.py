@@ -129,7 +129,17 @@ def print_help(*args):
     print(help())
 
 
-def open_observation(args, config, default_thread):
+def change_thread(args, config):
+    if not args:
+        print(f"Current thread: {config.current_thread}")
+        return
+
+    new_thread = args[0]
+    print(f"Changed thread from '{config.current_thread}' to '{new_thread}'")
+    config.current_thread = new_thread
+
+
+def open_observation(args, config):
     subprocess.call(['open', f"{config.url}/observations/{args[0]}"])
 
 
@@ -149,6 +159,7 @@ commands = {
     'wtf': ['journal', '-T', 'wtf'],
     'nove': ['journal', '-T', 'nove'],
     'reflect': 'reflect',
+    'thread': change_thread,
 }
 
 
@@ -160,9 +171,9 @@ def match_text_against_commands(text):
     return None
 
 
-def run_command(command, args, config, default_thread):
+def run_command(command, args, config):
     if callable(command):
-        command(args, config, default_thread)
+        command(args, config)
         return
 
     if type(command) == str:
@@ -174,13 +185,13 @@ def run_command(command, args, config, default_thread):
             return_code = subprocess.call(command_list)
             if return_code != 0:
                 print(f"Command exited with return code {return_code}", file=sys.stderr)
-            
+
             return
         except Exception as e:
             print(f"Error executing command: {e}", file=sys.stderr)
 
             return
-    
+
     raise TypeError(f"Invalid command: {command}")
 
 
@@ -188,9 +199,9 @@ def is_habit_command(text):
     return text.startswith('!') or text.startswith('#')
 
 
-def run_single_task(config, default_thread):
-    if default_thread != DEFAULT_THREAD:
-        original_text = get_input_until(bool, prompt=f"({default_thread}) > ")
+def run_single_task(config):
+    if config.current_thread != DEFAULT_THREAD:
+        original_text = get_input_until(bool, prompt=f"({config.current_thread}) > ")
     else:
         original_text = get_input_until(bool, prompt="> ")
 
@@ -203,11 +214,11 @@ def run_single_task(config, default_thread):
     command = match_text_against_commands(parts[0])
 
     if command is not None:
-        run_command(command, parts[1:], config, default_thread)
-        
+        run_command(command, parts[1:], config)
+
         return
 
-    add_task(config, default_thread, original_text)
+    add_task(config, config.current_thread, original_text)
 
 
 RE_THREAD = re.compile(r'^(.*?)\s*>\s*([A-Za-z0-9_-]+)\s*$')
@@ -258,16 +269,17 @@ def main():
     print(plan)
 
     # Load default thread from profile if not specified via command line
-    default_thread = arguments['--thread']
-    if not default_thread:
-        default_thread = load_default_thread_from_profile(config)
+    thread_from_args = arguments['--thread']
+    if thread_from_args:
+        config.current_thread = thread_from_args
+    else:
+        config.current_thread = load_default_thread_from_profile(config)
 
     try:
         consume(repeatfunc(
             run_single_task,
             None,
             config,
-            default_thread,
         ))
     except (KeyboardInterrupt, EOFError):
         print("Exiting...")
