@@ -192,6 +192,21 @@ Event = Union[
     ProjectedOutcomeClosed
 ]
 
+class DefaultBoardThread(BaseModel):
+    id: int
+    name: str
+
+
+class Profile(BaseModel):
+    id: int
+    default_board_thread: DefaultBoardThread
+
+
+class ProfileResponse(BaseModel):
+    count: int
+    results: List[Profile]
+
+
 class Result(BaseModel):
     date: date
     events: List[Event]
@@ -201,11 +216,11 @@ class Result(BaseModel):
     def empty(self):
         if self.events:
             return False
-        
+
         if self.plan and not self.plan.empty():
             return False
-        
+
         if self.reflection and not self.reflection.empty():
             return False
-        
+
         return True 

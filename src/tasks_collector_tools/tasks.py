@@ -1,14 +1,14 @@
 """Connect to the Tasks Collector.
 
-Usage: 
+Usage:
     tasks [options]
 
 Options:
-    --thread THREAD  Use specific thread [default: Inbox].
+    --thread THREAD  Use specific thread.
     -h, --help       Show this message.
     --version        Show version information.
 
-By default, tasks are added to the "Inbox" thread.
+By default, tasks are added to the thread from your profile.
 By prefixing a line with `!` or `#`, it will be added to the Habit Tracker instead.
 """
 
@@ -27,6 +27,7 @@ from requests.auth import HTTPBasicAuth
 from more_itertools import repeatfunc, consume
 
 from .config.tasks import TasksConfigFile
+from .models import ProfileResponse
 
 from collections.abc import Iterable
 
@@ -66,7 +67,23 @@ Available commands:
 Quit by pressing Ctrl+D or Ctrl+C.
 """
 
-DEFAULT_THREAD = 'Inbox'
+DEFAULT_THREAD = 'Daily'
+
+
+def load_default_thread_from_profile(config):
+    """Load default board thread from user profile API."""
+    try:
+        url = f'{config.url}/profile/'
+        r = requests.get(url, auth=HTTPBasicAuth(config.user, config.password))
+
+        if r.ok:
+            profile_response = ProfileResponse.parse_obj(r.json())
+            if profile_response.results:
+                return profile_response.results[0].default_board_thread.name
+    except Exception as e:
+        pass
+
+    return DEFAULT_THREAD
 
 
 def setup_readline_history(config):
@@ -226,7 +243,7 @@ def main():
     arguments = docopt(__doc__ + help(), version='1.0.2')
 
     config = TasksConfigFile()
-    
+
     # Set up readline history
     setup_readline_history(config)
 
@@ -240,12 +257,17 @@ def main():
 
     print(plan)
 
+    # Load default thread from profile if not specified via command line
+    default_thread = arguments['--thread']
+    if not default_thread:
+        default_thread = load_default_thread_from_profile(config)
+
     try:
         consume(repeatfunc(
             run_single_task,
             None,
             config,
-            arguments['--thread'],
+            default_thread,
         ))
     except (KeyboardInterrupt, EOFError):
         print("Exiting...")

@@ -13,6 +13,7 @@ class TasksConfigFile:
     observation_list_characters: int = 70
 
     ignore_habits: list[str] = []
+    default_board_thread: str = "Daily"
 
     def __init__(self):
         self.reader = ConfigParser()
