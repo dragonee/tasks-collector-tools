@@ -1,12 +1,13 @@
 """Dump observations to markdown files.
 
-Usage: 
+Usage:
     eventdump [options] [PATH]
 
 Options:
     -d DATE_FROM, --from FROM  Dump from specific date.
     -D DATE_TO, --to DATE_TO   Dump to specific date.
     --year YEAR      Dump specific year.
+    -T THREAD, --thread THREAD Dump specific thread.
     -h, --help       Show this message.
     --version        Show version information.
 """
@@ -109,11 +110,14 @@ def parse_result(result_data: dict) -> Result:
 def get_daily_events(config: TasksConfigFile, arguments: dict, dt: date = None):
     if dt is None:
         dt = datetime.now().date()
-    
+
     dt_string = '?date={}'.format(dt.strftime('%Y-%m-%d'))
 
+    if arguments.get('--thread'):
+        dt_string += '&thread={}'.format(arguments['--thread'])
+
     url = '{}/api/events/daily/{}'.format(
-        config.url, 
+        config.url,
         dt_string,
     )
 
