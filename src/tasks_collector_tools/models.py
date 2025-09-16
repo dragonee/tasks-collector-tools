@@ -141,8 +141,8 @@ class ProjectedOutcomeClosed(BaseEvent):
 
 class Plan(BaseModel):
     id: int
-    focus: str
-    want: str
+    focus: str|None
+    want: str|None
     pub_date: date
 
     def empty(self):
