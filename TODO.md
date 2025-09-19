@@ -35,3 +35,6 @@
 - [x] >Daily should send a task to a daily list
 - [ ] Better emoji support
 - [ ] Either handle projected outcome events or remove projected outcome events from events in tasks-collector
+- [ ] Add Areas
+  - Reflection Weekly is separated in areas (journal tags)
+  - Each Area has 

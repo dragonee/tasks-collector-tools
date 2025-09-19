@@ -71,11 +71,12 @@ Options:
 ```
 Add an observation.
 
-Usage: 
+Usage:
     observation [options]
 
 Options:
     -l, --list       List last couple of observations.
+    -a, --all        With -l, show all observations (not just mine).
     -n, --number N   With -l, show N observations [default: 20].
     -c, --chars N    With -l, show N chars of the situation [default: 100].
     --date DATE      Use specific date.

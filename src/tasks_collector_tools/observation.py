@@ -1,10 +1,11 @@
 """Add an observation.
 
-Usage: 
+Usage:
     observation [options]
 
 Options:
     -l, --list       List last couple of observations.
+    -a, --all        With -l, show all observations (not just mine).
     -n, --number N   With -l, show N observations [default: {observation_list_count}].
     -c, --chars N    With -l, show N chars of the situation [default: {observation_list_characters}].
     --date DATE      Use specific date.
@@ -93,8 +94,11 @@ def add_stack_to_payload(payload, name, lines):
     payload[name.lower()] = ''.join(lines).strip()
         
 
-def list_observations(config, chars=70, number=10):
-    url = '{}/observation-api/?page_size={}'.format(config.url, number)
+def list_observations(config, chars=70, number=10, ownership='mine'):
+    if ownership == 'mine':
+        url = '{}/observation-api/?page_size={}&ownership=mine'.format(config.url, number)
+    else:
+        url = '{}/observation-api/?page_size={}'.format(config.url, number)
 
     try:
         r = requests.get(url, auth=HTTPBasicAuth(config.user, config.password), timeout=SHORT_TIMEOUT)
@@ -139,10 +143,12 @@ def main():
     ), version='1.0.2')
 
     if arguments['--list']:
+        ownership = 'all' if arguments['--all'] else 'mine'
         list_observations(
             config,
             int(arguments['--chars']),
-            int(arguments['--number'])
+            int(arguments['--number']),
+            ownership
         )
 
         return
