@@ -38,3 +38,4 @@
 - [ ] Add Areas
   - Reflection Weekly is separated in areas (journal tags)
   - Each Area has 
+- [x] Bug: ensure that .tasks exists before writing to it

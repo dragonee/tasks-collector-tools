@@ -38,6 +38,7 @@ from requests.auth import HTTPBasicAuth
 from pathlib import Path
 
 from .config.tasks import TasksConfigFile
+from .utils import queue_failed_request, retry_failed_requests
 
 
 def template_from_arguments(arguments):
@@ -63,7 +64,6 @@ def add_stack_to_payload(payload, name, lines):
 
 OBSERVATION_FILE_PATH = os.path.expanduser(os.path.join('~', '.observation_id'))
 
-DEAD_LETTER_DIRECTORY = os.path.expanduser(os.path.join('~', '.tasks', 'queue'))
 
 def get_saved_observation_id():
     try:
@@ -74,47 +74,6 @@ def get_saved_observation_id():
     
     return None
 
-def queue_dead_letter(payload, path, metadata):
-    if not os.path.exists(path):
-        os.makedirs(path)
-
-    basename = "{}".format(datetime.now().strftime("%Y-%m-%d_%H%M%S_update"))
-    name = f'{basename}.json'
-    i = 0
-
-    while os.path.exists(name):
-        i += 1
-        name = f'{basename}-{i}.json'
-
-    with open(os.path.join(path, name), "w") as f:
-        json.dump({
-            'payload': payload,
-            'meta': metadata
-        }, f)
-    
-    return name
-
-def send_dead_letter(path, _metadata):
-    metadata = _metadata.copy()
-
-    print(f"Attempting to send {path}...")
-
-    with open(path) as f:        
-        data = json.load(f)
-
-
-        metadata.update(data['meta'])
-        payload = data['payload']
-
-        requests.post(metadata['url'], json=payload, auth=metadata['auth'])
-
-    os.unlink(path)
-
-
-def send_dead_letters(path, metadata):
-    for root, dirs, files in os.walk(path):
-        for name in sorted(files):
-            send_dead_letter(os.path.join(root, name), metadata)
 
 def main():
     arguments = docopt(__doc__, version='1.0.2')
@@ -177,7 +136,7 @@ def main():
         sys.exit(0)
 
     try:
-        send_dead_letters(DEAD_LETTER_DIRECTORY, metadata={
+        retry_failed_requests(metadata={
             'auth': HTTPBasicAuth(config.user, config.password)
         })
     except Exception as e:
@@ -189,9 +148,9 @@ def main():
     try:
         r = requests.post(url, json=payload, auth=HTTPBasicAuth(config.user, config.password))
     except ConnectionError:
-        name = queue_dead_letter(payload, path=DEAD_LETTER_DIRECTORY, metadata={
-            'url': url,            
-        })
+        name = queue_failed_request(payload, metadata={
+            'url': url,
+        }, file_type="update")
 
         print("Error: Connection failed.")
         print(f"Your update was saved at {name}.")

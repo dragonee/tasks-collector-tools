@@ -1,8 +1,78 @@
 import sys
 import contextlib
 import re
+import os
+import json
+from datetime import datetime
 
 SHORT_TIMEOUT = 3.05
+
+DEAD_LETTER_DIRECTORY = os.path.expanduser(os.path.join('~', '.tasks', 'queue'))
+
+
+def ensure_directory_exists(file_path):
+    """Ensure the directory for the given file path exists."""
+    directory = os.path.dirname(file_path)
+    if directory and not os.path.exists(directory):
+        os.makedirs(directory, exist_ok=True)
+
+
+def queue_dead_letter(payload, path, metadata, file_type="item"):
+    """Queue a payload to be sent later when connection is restored."""
+    ensure_directory_exists(path)
+
+    basename = datetime.now().strftime(f"%Y-%m-%d_%H%M%S_{file_type}")
+    name = f'{basename}.json'
+    i = 0
+
+    while os.path.exists(os.path.join(path, name)):
+        i += 1
+        name = f'{basename}-{i}.json'
+
+    with open(os.path.join(path, name), "w") as f:
+        json.dump({
+            'payload': payload,
+            'meta': metadata
+        }, f)
+
+    return name
+
+
+def send_dead_letter(path, _metadata):
+    """Send a single queued dead letter."""
+    import requests
+
+    metadata = _metadata.copy()
+
+    print(f"Attempting to send {path}...")
+
+    with open(path) as f:
+        data = json.load(f)
+
+    metadata.update(data['meta'])
+    payload = data['payload']
+
+    requests.post(metadata['url'], json=payload, auth=metadata['auth'])
+
+    os.unlink(path)
+
+
+def send_dead_letters(path, metadata):
+    """Send all queued dead letters in a directory."""
+    ensure_directory_exists(path)
+    for root, dirs, files in os.walk(path):
+        for name in sorted(files):
+            send_dead_letter(os.path.join(root, name), metadata)
+
+
+def queue_failed_request(payload, metadata, file_type):
+    """Queue a failed request to be retried later."""
+    return queue_dead_letter(payload, DEAD_LETTER_DIRECTORY, metadata, file_type)
+
+
+def retry_failed_requests(metadata):
+    """Retry all failed requests that were queued."""
+    send_dead_letters(DEAD_LETTER_DIRECTORY, metadata)
 
 @contextlib.contextmanager
 def smart_open(filename=None, mode='r', pipe=None, **kwargs):
