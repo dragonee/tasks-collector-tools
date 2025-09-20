@@ -30,7 +30,7 @@ See more:
 - {url}/
 """
 
-import json, os, re, sys
+import os, re, sys
 
 from docopt import docopt
 
@@ -40,27 +40,15 @@ import tempfile
 
 import subprocess
 
-import requests
-from requests.exceptions import ConnectionError
-
-from requests.auth import HTTPBasicAuth
-
-from pathlib import Path
-
 from .config.tasks import TasksConfigFile
 
-from .quick_notes import get_quick_notes_as_string
-
-from .plans import get_plan_for_today
-from .utils import sanitize_fields, get_cursor_position, sanitize_list_of_strings, retry_failed_requests
+from .utils import get_cursor_position
 
 from datetime import timezone
 
 from dateutil.parser import parse
 
 import calendar
-
-from pprint import pprint
 
 def get_start_and_end_of_week(date):
     # Calculate start of week (Monday) and end of week (Sunday) using timedelta
@@ -348,7 +336,3 @@ def main():
 
         subprocess.run(cmd, check=True)
 
-        
-            
-
-            
