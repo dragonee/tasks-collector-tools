@@ -91,38 +91,74 @@ class Habit:
     description: str = None
 
 
+def match_occurrence(entry, words, no_words):
+    """Match occurrence indicators and return True, False, or just the text."""
+    for word in words:
+        if entry.startswith(word):
+            return (True, entry[len(word):].lstrip())
+
+    for word in no_words:
+        if entry.startswith(word):
+            return (False, entry[len(word):].lstrip())
+
+    # No occurrence indicator found
+    return entry.strip()
+
+
+def parse_pipe_entries(input_string, words, no_words):
+    """Parse pipe-separated entries with occurrence inheritance."""
+    entries = [entry.strip() for entry in input_string.split('|')]
+    results = []
+    last_occurrence = None
+
+    for entry in entries:
+        if not entry:
+            continue
+
+        match match_occurrence(entry, words, no_words):
+            case (True, text):
+                last_occurrence = True
+                results.append((True, text))
+            case (False, text):
+                last_occurrence = False
+                results.append((False, text))
+            case text:  # Just text, no occurrence indicator
+                if last_occurrence is not None:
+                    results.append((last_occurrence, text))
+                else:
+                    # First entry has no indicator, return None to retry input
+                    return None
+
+    return results if results else None
+
+
 def ask_for(words, no_words=None, skip_words=None, prompt="{words}"):
     if no_words:
         _prompt = "[{}/{}/{}] ".format(words[0], no_words[0], skip_words[0].upper())
     else:
         _prompt = "[{}/{}] ".format(words[0], skip_words[0].upper())
-    
-    prompt = prompt.format(words=_prompt)
 
-    def match_any(words, s):
-        for word in words:
-            if s.startswith(word):
-                return (True, s[len(word):].lstrip())
-            
-        return (False, None)
+    prompt = prompt.format(words=_prompt)
 
     while True:
         original_input = input(prompt)
 
-        skip, _ = match_any(skip_words, original_input)
+        # Handle empty input or skip first
+        if original_input == '':
+            return None
 
-        if original_input == '' or skip:
-            return (None, None)
-        
-        true, s = match_any(words, original_input)
+        # Check for skip words
+        for skip_word in skip_words:
+            if original_input.startswith(skip_word):
+                return None
 
-        if true:
-            return (True, s)
-        
-        false, s = match_any(no_words, original_input)
-        
-        if false:
-            return (False, s)
+        # Parse entries (single or pipe-separated)
+        parsed_entries = parse_pipe_entries(original_input, words, no_words)
+
+        if parsed_entries is None:
+            continue  # Invalid input, ask again
+
+        return parsed_entries
 
 
 def format_line(habit, answer, text):
@@ -165,14 +201,18 @@ def main():
 
     non_tracked_habits = filter(lambda h: h.today_tracked == 0, habits_without_ignored)
 
+    print("Tip: Use pipe separator (|) for multiple entries: y first entry | second entry | n third entry")
+
     try:
         for habit in non_tracked_habits:
-            answer, text = ask_for(['y', 't'], ['n', 'f'], ['s'], prompt=f'#{habit.tagname} {{words}}')
+            entries = ask_for(['y', 't'], ['n', 'f'], ['s'], prompt=f'#{habit.tagname} {{words}}')
 
-            if answer is None:
+            if entries is None:
                 continue
-            
-            add_habit(config, format_line(habit, answer, text), published=published)
+
+            # Process all entries for this habit
+            for answer, text in entries:
+                add_habit(config, format_line(habit, answer, text), published=published)
     except (KeyboardInterrupt, EOFError):
         print()
         return
