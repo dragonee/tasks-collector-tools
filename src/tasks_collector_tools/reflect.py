@@ -52,7 +52,7 @@ from .config.tasks import TasksConfigFile
 from .quick_notes import get_quick_notes_as_string
 
 from .plans import get_plan_for_today
-from .utils import sanitize_fields, get_cursor_position, sanitize_list_of_strings
+from .utils import sanitize_fields, get_cursor_position, sanitize_list_of_strings, retry_failed_requests
 
 from datetime import timezone
 
@@ -143,50 +143,8 @@ def add_stack_to_payload(payload, name, lines):
     payload[name.lower()] = ''.join(lines).strip()
 
 
-DEAD_LETTER_DIRECTORY = os.path.expanduser(os.path.join('~', '.tasks', 'queue'))
 
 
-def queue_dead_letter(payload, path, metadata):
-    if not os.path.exists(path):
-        os.makedirs(path)
-
-    basename = "{}".format(datetime.now().strftime("%Y-%m-%d_%H%M%S_journal"))
-    name = f'{basename}.json'
-    i = 0
-
-    while os.path.exists(name):
-        i += 1
-        name = f'{basename}-{i}.json'
-
-    with open(os.path.join(path, name), "w") as f:
-        json.dump({
-            'payload': payload,
-            'meta': metadata
-        }, f)
-    
-    return name
-
-def send_dead_letter(path, _metadata):
-    metadata = _metadata.copy()
-
-    print(f"Attempting to send {path}...")
-
-    with open(path) as f:        
-        data = json.load(f)
-
-
-        metadata.update(data['meta'])
-        payload = data['payload']
-
-        requests.post(metadata['url'], json=payload, auth=metadata['auth'])
-
-    os.unlink(path)
-
-
-def send_dead_letters(path, metadata):
-    for root, dirs, files in os.walk(path):
-        for name in sorted(files):
-            send_dead_letter(os.path.join(root, name), metadata)
 
 
 multi_line_re = re.compile(r'\n(\s*\n)+')

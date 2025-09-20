@@ -58,7 +58,7 @@ from pathlib import Path
 
 from .config.tasks import TasksConfigFile
 
-from .utils import sanitize_fields, SHORT_TIMEOUT
+from .utils import sanitize_fields, SHORT_TIMEOUT, ensure_directory_exists
 
 OBSERVATIONS_BACKUP_FILE = os.path.expanduser(os.path.join('~', '.tasks', 'observations_backup.json'))
 
@@ -113,6 +113,7 @@ def list_observations(config, chars=70, number=10, ownership='mine'):
 
         response = r.json()
 
+        ensure_directory_exists(OBSERVATIONS_BACKUP_FILE)
         with open(OBSERVATIONS_BACKUP_FILE, 'w') as f:
             json.dump(response, f)
     except (ConnectionError, ReadTimeout):

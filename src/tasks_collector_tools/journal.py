@@ -58,7 +58,7 @@ from .config.tasks import TasksConfigFile
 from .quick_notes import get_quick_notes_as_string
 
 from .plans import get_plans_for_today_sync
-from .utils import sanitize_fields, get_cursor_position, sanitize_list_of_strings
+from .utils import sanitize_fields, get_cursor_position, sanitize_list_of_strings, queue_failed_request, retry_failed_requests
 
 def yesterdays_date():
     """Returns yesterday's date at 23:XX."""
@@ -132,50 +132,8 @@ def add_stack_to_payload(payload, name, lines):
     payload[name.lower()] = ''.join(lines).strip()
 
 
-DEAD_LETTER_DIRECTORY = os.path.expanduser(os.path.join('~', '.tasks', 'queue'))
 
 
-def queue_dead_letter(payload, path, metadata):
-    if not os.path.exists(path):
-        os.makedirs(path)
-
-    basename = "{}".format(datetime.now().strftime("%Y-%m-%d_%H%M%S_journal"))
-    name = f'{basename}.json'
-    i = 0
-
-    while os.path.exists(name):
-        i += 1
-        name = f'{basename}-{i}.json'
-
-    with open(os.path.join(path, name), "w") as f:
-        json.dump({
-            'payload': payload,
-            'meta': metadata
-        }, f)
-    
-    return name
-
-def send_dead_letter(path, _metadata):
-    metadata = _metadata.copy()
-
-    print(f"Attempting to send {path}...")
-
-    with open(path) as f:        
-        data = json.load(f)
-
-
-        metadata.update(data['meta'])
-        payload = data['payload']
-
-        requests.post(metadata['url'], json=payload, auth=metadata['auth'])
-
-    os.unlink(path)
-
-
-def send_dead_letters(path, metadata):
-    for root, dirs, files in os.walk(path):
-        for name in sorted(files):
-            send_dead_letter(os.path.join(root, name), metadata)
 
 
 def list_todays_journals(arguments):
@@ -265,7 +223,7 @@ def main():
         sys.exit(0)
 
     try:
-        send_dead_letters(DEAD_LETTER_DIRECTORY, metadata={
+        retry_failed_requests(metadata={
             'auth': HTTPBasicAuth(config.user, config.password)
         })
     except Exception as e:
@@ -299,9 +257,9 @@ def main():
         
 
     except ConnectionError:
-        name = queue_dead_letter(payload, path=DEAD_LETTER_DIRECTORY, metadata={
-            'url': url,            
-        })
+        name = queue_failed_request(payload, metadata={
+            'url': url,
+        }, file_type="journal")
 
         print("Error: Connection failed.")
         print(f"Your update was saved at {name}.")
