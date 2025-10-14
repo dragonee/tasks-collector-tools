@@ -103,6 +103,9 @@ def sanitize_fields(payload, mapping=None):
 
 
 def itemize_string(value, prepend=None, append=None, prefix="- "):
+    if value is None:
+        return ''
+
     s = "\n".join([prefix + line.strip() if line.strip() else line for line in value.split("\n")])
 
     if prepend:
