@@ -223,4 +223,24 @@ class Result(BaseModel):
         if self.reflection and not self.reflection.empty():
             return False
 
-        return True 
+        return True
+
+
+class StatsResponse(BaseModel):
+    year: Optional[int]
+    years: List[int]
+    journal_count: int
+    habit_count: int
+    observation_count: int
+    observation_updated_count: int
+    observation_closed_count: int
+    event_count: int
+    observation_recontextualized_count: int
+    observation_reflected_upon_count: int
+    observation_reinterpreted_count: int
+    projected_outcome_made_count: int
+    projected_outcome_redefined_count: int
+    projected_outcome_rescheduled_count: int
+    projected_outcome_closed_count: int
+    word_count: int
+    word_count_updated: datetime 
