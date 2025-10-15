@@ -27,7 +27,7 @@ from requests.auth import HTTPBasicAuth
 from more_itertools import repeatfunc, consume
 
 from .config.tasks import TasksConfigFile
-from .models import ProfileResponse
+from .models import ProfileResponse, StatsResponse
 
 from collections.abc import Iterable
 
@@ -143,6 +143,57 @@ def open_observation(args, config):
     subprocess.call(['open', f"{config.url}/observations/{args[0]}"])
 
 
+def show_stats(args, config):
+    """Fetch and display statistics from the Tasks Collector."""
+    year = args[0] if args else None
+
+    url = f'{config.url}/stats/json/'
+    params = {'year': year} if year else {}
+
+    try:
+        r = requests.get(url, params=params, auth=HTTPBasicAuth(config.user, config.password))
+
+        if r.ok:
+            stats = StatsResponse.parse_obj(r.json())
+
+            # Format and print the stats
+            year_display = stats.year if stats.year else "All time"
+            print(f"\nStatistics for {year_display}")
+            print("=" * 50)
+
+            print(f"\nActivity Counts:")
+            print(f"  Total Events:                    {stats.event_count:>6}")
+            print(f"  Journal Entries:                 {stats.journal_count:>6}")
+            print(f"  Habit Trackings:                 {stats.habit_count:>6}")
+
+            print(f"\nObservations:")
+            print(f"  Made:                            {stats.observation_count:>6}")
+            print(f"  Updated:                         {stats.observation_updated_count:>6}")
+            print(f"  Closed:                          {stats.observation_closed_count:>6}")
+            print(f"  Recontextualized:                {stats.observation_recontextualized_count:>6}")
+            print(f"  Reflected Upon:                  {stats.observation_reflected_upon_count:>6}")
+            print(f"  Reinterpreted:                   {stats.observation_reinterpreted_count:>6}")
+
+            print(f"\nProjected Outcomes:")
+            print(f"  Made:                            {stats.projected_outcome_made_count:>6}")
+            print(f"  Redefined:                       {stats.projected_outcome_redefined_count:>6}")
+            print(f"  Rescheduled:                     {stats.projected_outcome_rescheduled_count:>6}")
+            print(f"  Closed:                          {stats.projected_outcome_closed_count:>6}")
+
+            print(f"\nWord Count:                        {stats.word_count:>6} (last updated: {stats.word_count_updated.strftime('%Y-%m-%d %H:%M:%S')})")
+
+            if stats.years:
+                print(f"\nAvailable years: {', '.join(map(str, stats.years))}")
+        else:
+            print(f"Error fetching stats: HTTP {r.status_code}")
+            try:
+                print(json.dumps(r.json(), indent=4, sort_keys=True))
+            except json.decoder.JSONDecodeError:
+                print(r.text)
+    except Exception as e:
+        print(f"Error fetching stats: {e}", file=sys.stderr)
+
+
 commands = {
     'observation': 'observation',
     'olist': ['observation', '-l'],
@@ -160,6 +211,7 @@ commands = {
     'nove': ['journal', '-T', 'nove'],
     'reflect': 'reflect',
     'thread': change_thread,
+    'stats': show_stats,
 }
 
 
