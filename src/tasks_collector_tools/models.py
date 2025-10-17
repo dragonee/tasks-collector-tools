@@ -21,7 +21,6 @@ class Habit(BaseModel):
     description: Optional[str]
     slug: str
     keywords: List[str]
-    tagname: Optional[str] = None # Deprecated
 
 
 class HabitWithTracked(Habit):
