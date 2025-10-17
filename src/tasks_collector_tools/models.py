@@ -20,8 +20,12 @@ class Habit(BaseModel):
     name: str
     description: Optional[str]
     slug: str
-    tagname: str
+    keywords: List[str]
+    tagname: Optional[str] = None # Deprecated
 
+
+class HabitWithTracked(Habit):
+    today_tracked: int
 
 class JournalAdded(BaseEvent):
     resourcetype: Literal['JournalAdded']

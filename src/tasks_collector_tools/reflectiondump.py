@@ -236,29 +236,39 @@ class ObservationStatistics:
             'renders': '\n'.join(self.renders.values()),
         }
 
-class HabitStatistics:
-    habits: List[Habit]
+class HabitGroup:
+    def __init__(self, habit: Habit):
+        self.count = 0
+        self.days = set()
+        self.items = []
+        self.name = habit.name
 
-    def __init__(self, habits: List[Habit]):
+    def add(self, habit_tracked: HabitTracked):
+        self.count += 1 if habit_tracked.occured else 0
+        self.days.add(habit_tracked.published.strftime('%a'))
+        if habit_tracked.note:
+            self.items.append(habit_tracked.note)
+
+
+class HabitStatistics:
+    habits: List[HabitTracked]
+
+    def __init__(self, habits: List[HabitTracked]):
         self.habits = habits
 
     def get_context(self):
         habit_groups = {}
-        for habit_tracked in self.habits:
-            tagname = habit_tracked.habit.tagname
 
-            if tagname not in habit_groups:
-                habit_groups[tagname] = {'count': 0, 'days': set(), 'descriptions': []}
-            habit_groups[tagname]['count'] += 1 if habit_tracked.occured else 0
-            habit_groups[tagname]['days'].add(habit_tracked.published.strftime('%a'))
-            if habit_tracked.note:
-                habit_groups[tagname]['descriptions'].append(habit_tracked.note)
+        for habit_tracked in self.habits:
+            if habit_tracked.habit.id not in habit_groups:
+                habit_groups[habit_tracked.habit.id] = HabitGroup(habit_tracked.habit)
+            habit_groups[habit_tracked.habit.id].add(habit_tracked)
 
         return {
             'habit_groups': '\n'.join(
-                f"- #{tagname}: {data['count']} times on {', '.join(data['days'])}\n" +
-                '\n'.join(f"  - {desc}" for desc in data['descriptions'])
-                for tagname, data in habit_groups.items()
+                f"- {habit_group.name}: {habit_group.count} times on {', '.join(habit_group.days)}\n" +
+                '\n'.join(f"  - {note}" for note in habit_group.items)
+                for habit_group in habit_groups.values()
             )
         }
         

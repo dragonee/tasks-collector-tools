@@ -30,6 +30,8 @@ from dataclasses import dataclass
 from datetime import datetime, timedelta
 from dateutil.parser import parse
 
+from .models import HabitWithTracked
+
 
 def add_habit(config, text, published=None):
     if published is None:
@@ -54,7 +56,8 @@ def add_habit(config, text, published=None):
 
 
 def format_habit_list(habits):
-    return ", ".join(map(lambda h: '#' + h['tagname'], habits))
+    keywords = ['#' + keyword for habit in habits for keyword in habit.get('keywords', [])]
+    return ", ".join(keywords)
 
 
 def get_habit_list(config, stderr, date=None):
@@ -80,15 +83,6 @@ def print_habit_list(config, filename='-'):
 
         f.write(format_habit_list(habits) + '\n')
 
-
-@dataclass
-class Habit:
-    id: int
-    tagname: str
-    name: str
-    slug: str
-    today_tracked: int
-    description: str = None
 
 
 def match_occurrence(entry, words, no_words):
@@ -161,10 +155,10 @@ def ask_for(words, no_words=None, skip_words=None, prompt="{words}"):
         return parsed_entries
 
 
-def format_line(habit, answer, text):
+def format_line(keyword, answer, text):
     occured = '#' if answer else '!'
     
-    return f'{occured}{habit.tagname} {text}'
+    return f'{occured}{keyword} {text}'
 
 
 def get_date_from_arguments(arguments):
@@ -192,27 +186,28 @@ def main():
     
     raw_habits = get_habit_list(config, sys.stderr, date=published.date())
 
-    habits = map(lambda h: Habit(**h), raw_habits)
+    habits = map(lambda h: HabitWithTracked(**h), raw_habits)
 
-    if arguments['--all']:
-        habits_without_ignored = habits
-    else:
-        habits_without_ignored = filter(lambda h: h.tagname not in config.ignore_habits, habits)
+    def check(keyword, habit):
+        if arguments['--all']:
+            return True
 
-    non_tracked_habits = filter(lambda h: h.today_tracked == 0, habits_without_ignored)
+        return keyword not in config.ignore_habits and habit.today_tracked == 0
+
+    keywords = [keyword for habit in habits for keyword in habit.keywords if check(keyword, habit)]
 
     print("Tip: Use pipe separator (|) for multiple entries: y first entry | second entry | n third entry")
 
     try:
-        for habit in non_tracked_habits:
-            entries = ask_for(['y', 't'], ['n', 'f'], ['s'], prompt=f'#{habit.tagname} {{words}}')
+        for keyword in keywords:
+            entries = ask_for(['y', 't'], ['n', 'f'], ['s'], prompt=f'#{keyword} {{words}}')
 
             if entries is None:
                 continue
 
             # Process all entries for this habit
             for answer, text in entries:
-                add_habit(config, format_line(habit, answer, text), published=published)
+                add_habit(config, format_line(keyword, answer, text), published=published)
     except (KeyboardInterrupt, EOFError):
         print()
         return
