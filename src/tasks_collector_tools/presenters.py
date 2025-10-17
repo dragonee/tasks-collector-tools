@@ -85,11 +85,25 @@ class HabitTrackedPresenter(BaseEventPresenter):
 
         return f'- {self.nice_published()}: {self.get_note()}'
 
+    def get_keyword(self) -> str:
+        note = self.get_note()
+        
+        for keyword in self.event.habit.keywords:
+            if re.match(r'^[!#]' + keyword, note):
+                return keyword
+
+        if len(self.event.habit.keywords) > 0:
+            return self.event.habit.keywords[0]
+        
+        name = self.event.habit.name
+        raise ValueError(f"Habit {name} has no keywords")
+
     def get_note(self):
         if not self.event.note:
             occured_str = '#' if self.event.occured else '!'
+            keyword = self.get_keyword()
 
-            return f'{occured_str}{self.event.habit.tagname}'
+            return f'{occured_str}{keyword}'
         
         return self.event.note
 
