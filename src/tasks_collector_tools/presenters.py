@@ -18,6 +18,8 @@ from .models import (
 CUTREGEX = re.compile(r'^\s*\-\s*(?:\[x\^\~\s\])?\s*')
 
 def listize(text, prefix='- ', cutregex=CUTREGEX):
+    if text is None:
+        return ''
     return '\n'.join(f'{prefix}{cutregex.sub("", line)}' for line in text.split('\n') if line.strip())
 
 def first_line(text):
