@@ -115,33 +115,16 @@ def template_from_payload(payload):
 
     return TEMPLATE.format(notes='', plan='', **payload).lstrip()
 
-title_re = re.compile(r'^##? (Reflection|Better|Best)')
 
 point_re = re.compile(r'^\s*\-\s*\[([x\^\~])\]\s*')
 multi_line_re = re.compile(r'\n(\s*\n)+')
 
-def add_point_to_payload(payload, name, line):
-    if name is None:
-        return
-
-    if name == 'Reflection':
-        name = 'good'
-
-    if payload.get(name.lower()) is None:
-        payload[name.lower()] = ''
-
-    payload[name.lower()] += line.strip() + '\n'
-
 JOURNAL_TEMPLATE = """
-{good}
-
-{better}
-
-{best} 
+{payload}
 """
 
 def journal_payload_from_reflection_payload(payload, published, thread):
-    comment = JOURNAL_TEMPLATE.format(**payload).strip()
+    comment = JOURNAL_TEMPLATE.format(payload=payload).strip()
     comment = multi_line_re.sub('\n\n', comment)
 
     return {
@@ -278,17 +261,7 @@ def main():
     if result.returncode != 0:
         sys.exit(1)
 
-    payload = {
-        'good': None,
-        'better': None,
-        'best': None,
-    }
-
-    mapping = {
-        'x': 'good',
-        '~': 'better',
-        '^': 'best',
-    }
+    payload = ''
 
     with open(tmpfile.name) as f:
         for line in f:
@@ -299,12 +272,11 @@ def main():
             if not m:
                 continue
 
-            current_name = mapping[m.group(1).strip()]
-            add_point_to_payload(payload, current_name, line)
+            payload += line.strip() + '\n'
 
     os.unlink(tmpfile.name)
 
-    if not payload['good']:
+    if not payload:
         print("No changes were made to the Comment field.")
 
         sys.exit(0)
