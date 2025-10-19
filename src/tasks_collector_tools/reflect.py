@@ -130,7 +130,7 @@ def add_point_to_payload(payload, name, line):
     if payload.get(name.lower()) is None:
         payload[name.lower()] = ''
 
-    payload[name.lower()] += line.strip()
+    payload[name.lower()] += line.strip() + '\n'
 
 JOURNAL_TEMPLATE = """
 {good}
