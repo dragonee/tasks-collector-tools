@@ -267,12 +267,14 @@ def main():
         for line in f:
             if line.strip() == '# Journals':
                 break
-            
+
             m = point_re.match(line.strip())
             if not m:
                 continue
 
-            payload += line.strip() + '\n'
+            # Remove # or ! from the beginning of the text after the checkbox
+            cleaned_line = re.sub(r'(\[[x\^\~]\]\s*)([#!])', r'\1', line.strip())
+            payload += cleaned_line + '\n'
 
     os.unlink(tmpfile.name)
 
