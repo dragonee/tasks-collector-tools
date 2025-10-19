@@ -117,26 +117,20 @@ def template_from_payload(payload):
 
 title_re = re.compile(r'^##? (Reflection|Better|Best)')
 
+point_re = re.compile(r'^\s*\-\s*\[([x\^\~])\]\s*')
+multi_line_re = re.compile(r'\n(\s*\n)+')
 
-empty_point_re = re.compile(r'^\s*\-\s*(?:\[\s+\])\s*')
-point_re = re.compile(r'^\s*\-\s*(?:\[x\^\~\])?\s*')
-
-def add_stack_to_payload(payload, name, lines):
+def add_point_to_payload(payload, name, line):
     if name is None:
         return
 
     if name == 'Reflection':
         name = 'good'
 
-    payload[name.lower()] = ''.join(lines).strip()
+    if payload.get(name.lower()) is None:
+        payload[name.lower()] = ''
 
-
-
-
-
-
-multi_line_re = re.compile(r'\n(\s*\n)+')
-
+    payload[name.lower()] += line.strip()
 
 JOURNAL_TEMPLATE = """
 {good}
@@ -290,26 +284,23 @@ def main():
         'best': None,
     }
 
-    with open(tmpfile.name) as f:
-        current_name = None
-        current_stack = []
+    mapping = {
+        'x': 'good',
+        '~': 'better',
+        '^': 'best',
+    }
 
+    with open(tmpfile.name) as f:
         for line in f:
-            if m := title_re.match(line):
-                if current_name is not None:
-                    add_stack_to_payload(payload, current_name, current_stack)
-                
-                current_name = m.group(1).strip()
-                current_stack = []
-            elif line.strip().startswith('#') and current_name is not None:
-                add_stack_to_payload(payload, current_name, current_stack)
-                current_name = None
-                current_stack = []
-            elif not empty_point_re.match(line):
-                current_stack.append(line)
-    
-        if current_name is not None:
-            add_stack_to_payload(payload, current_name, current_stack)
+            if line.strip() == '# Journals':
+                break
+            
+            m = point_re.match(line.strip())
+            if not m:
+                continue
+
+            current_name = mapping[m.group(1).strip()]
+            add_point_to_payload(payload, current_name, line)
 
     os.unlink(tmpfile.name)
 
