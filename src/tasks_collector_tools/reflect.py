@@ -115,39 +115,16 @@ def template_from_payload(payload):
 
     return TEMPLATE.format(notes='', plan='', **payload).lstrip()
 
-title_re = re.compile(r'^##? (Reflection|Better|Best)')
 
-
-empty_point_re = re.compile(r'^\s*\-\s*(?:\[\s+\])\s*')
-point_re = re.compile(r'^\s*\-\s*(?:\[x\^\~\])?\s*')
-
-def add_stack_to_payload(payload, name, lines):
-    if name is None:
-        return
-
-    if name == 'Reflection':
-        name = 'good'
-
-    payload[name.lower()] = ''.join(lines).strip()
-
-
-
-
-
-
+point_re = re.compile(r'^\s*\-\s*\[([x\^\~])\]\s*')
 multi_line_re = re.compile(r'\n(\s*\n)+')
 
-
 JOURNAL_TEMPLATE = """
-{good}
-
-{better}
-
-{best} 
+{payload}
 """
 
 def journal_payload_from_reflection_payload(payload, published, thread):
-    comment = JOURNAL_TEMPLATE.format(**payload).strip()
+    comment = JOURNAL_TEMPLATE.format(payload=payload).strip()
     comment = multi_line_re.sub('\n\n', comment)
 
     return {
@@ -284,36 +261,24 @@ def main():
     if result.returncode != 0:
         sys.exit(1)
 
-    payload = {
-        'good': None,
-        'better': None,
-        'best': None,
-    }
+    payload = ''
 
     with open(tmpfile.name) as f:
-        current_name = None
-        current_stack = []
-
         for line in f:
-            if m := title_re.match(line):
-                if current_name is not None:
-                    add_stack_to_payload(payload, current_name, current_stack)
-                
-                current_name = m.group(1).strip()
-                current_stack = []
-            elif line.strip().startswith('#') and current_name is not None:
-                add_stack_to_payload(payload, current_name, current_stack)
-                current_name = None
-                current_stack = []
-            elif not empty_point_re.match(line):
-                current_stack.append(line)
-    
-        if current_name is not None:
-            add_stack_to_payload(payload, current_name, current_stack)
+            if line.strip() == '# Journals':
+                break
+
+            m = point_re.match(line.strip())
+            if not m:
+                continue
+
+            # Remove # or ! from the beginning of the text after the checkbox
+            cleaned_line = re.sub(r'(\[[x\^\~]\]\s*)([#!])', r'\1', line.strip())
+            payload += cleaned_line + '\n'
 
     os.unlink(tmpfile.name)
 
-    if not payload['good']:
+    if not payload:
         print("No changes were made to the Comment field.")
 
         sys.exit(0)
