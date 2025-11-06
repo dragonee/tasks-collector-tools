@@ -44,3 +44,4 @@
 - [ ] Add Areas
   - Reflection Weekly is separated in areas (journal tags)
   - Each Area has own journal entry then, tagged accordignly
+- [ ] >Thread Task this and that
