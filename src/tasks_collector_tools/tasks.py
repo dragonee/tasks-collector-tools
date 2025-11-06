@@ -140,7 +140,10 @@ def change_thread(args, config):
 
 
 def open_observation(args, config):
-    subprocess.call(['open', f"{config.url}/observations/{args[0]}"])
+    if args:
+        subprocess.call(['open', f"{config.url}/observations/{args[0]}"])
+    else:
+        subprocess.call(['open', f"{config.url}/observations/"])
 
 
 def show_stats(args, config):
