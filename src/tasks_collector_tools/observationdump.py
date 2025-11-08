@@ -73,6 +73,7 @@ class Observation:
     type: str = None
     thread: str = None
     published: datetime = None
+    last_event_published: datetime = None
     situation: str = None
     interpretation: str = None
     approach: str = None
@@ -232,7 +233,11 @@ def update_observation_with_event(observation: Observation, event: dict):
 
     if event['resourcetype'] in ('ObservationMade', 'ObservationClosed'):
         observation.published = event['published']
-    
+
+    # Track the last event timestamp
+    if observation.last_event_published is None or event['published'] > observation.last_event_published:
+        observation.last_event_published = event['published']
+
     if 'type' in event:
         observation.type = event['type']
     if 'thread' in event:
@@ -248,7 +253,7 @@ def update_observation_with_event(observation: Observation, event: dict):
         observation.closed = True
     if event['resourcetype'] == 'ObservationUpdated':
         observation.updates.append(event)
-    
+
     observation.events.append(event)
 
 
