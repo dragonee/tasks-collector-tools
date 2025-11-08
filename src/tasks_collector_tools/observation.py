@@ -63,6 +63,55 @@ from .utils import sanitize_fields, SHORT_TIMEOUT, ensure_directory_exists
 OBSERVATIONS_BACKUP_FILE = os.path.expanduser(os.path.join('~', '.tasks', 'observations_backup.json'))
 
 
+def time_ago(date_string):
+    """Calculate time ago from a date string with multiple units."""
+    if not date_string:
+        return ""
+
+    try:
+        from dateutil.parser import parse
+        last_event = parse(date_string)
+
+        # Make sure both datetimes are timezone-aware or both are naive
+        now = datetime.now()
+        if last_event.tzinfo is not None:
+            from datetime import timezone
+            now = datetime.now(timezone.utc)
+
+        delta = now - last_event
+        seconds = int(delta.total_seconds())
+
+        if seconds < 60:
+            return "just now"
+
+        # Time units in seconds
+        units = [
+            ('y', 31536000),  # 365 days
+            ('mo', 2592000),  # 30 days
+            ('w', 604800),    # 7 days
+            ('d', 86400),     # 1 day
+            ('h', 3600),      # 1 hour
+            ('m', 60),        # 1 minute
+        ]
+
+        parts = []
+        remaining = seconds
+
+        for unit_name, unit_seconds in units:
+            if remaining >= unit_seconds:
+                value = remaining // unit_seconds
+                remaining = remaining % unit_seconds
+                parts.append(f"{value}{unit_name}")
+
+        # Return up to 2 most significant units
+        if parts:
+            return " ".join(parts[:2]) + " ago"
+        else:
+            return "just now"
+    except Exception:
+        return ""
+
+
 def template_from_arguments(arguments):
     return TEMPLATE.format(
         pub_date=arguments['--date'] or datetime.today().strftime('%Y-%m-%d'),
@@ -129,9 +178,17 @@ def list_observations(config, chars=70, number=10, ownership='mine'):
         return
 
     for item in response['results']:
-        print("#{}: {}".format(
+        situation_text = re.sub(r'\s+', ' ', item['situation'])[:chars]
+
+        # Add time since last update if available
+        time_info = ""
+        if 'last_event_published' in item and item['last_event_published']:
+            time_info = f" ({time_ago(item['last_event_published'])})"
+
+        print("#{}: {}{}".format(
             item['id'],
-            re.sub(r'\s+', ' ', item['situation'])[:chars]
+            situation_text,
+            time_info
         ))
         
 
