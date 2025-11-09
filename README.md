@@ -37,6 +37,7 @@ Available commands:
   nove
   reflect
   thread
+  stats
 
 Quit by pressing Ctrl+D or Ctrl+C.
 ```
@@ -79,6 +80,7 @@ Options:
     -a, --all        With -l, show all observations (not just mine).
     -n, --number N   With -l, show N observations [default: 20].
     -c, --chars N    With -l, show N chars of the situation [default: 100].
+    -u, --sort-by-update  With -l, sort by last event time (most recent first).
     --date DATE      Use specific date.
     -s, --save       Save as default for updates [default: False].
     --thread THREAD  Use specific thread [default: big-picture].
