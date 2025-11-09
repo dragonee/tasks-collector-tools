@@ -45,7 +45,7 @@ import json, os, re, sys
 
 from docopt import docopt
 
-from datetime import datetime, timedelta
+from datetime import datetime
 
 import tempfile
 
@@ -54,8 +54,6 @@ import subprocess
 import requests
 from requests.auth import HTTPBasicAuth
 from requests.exceptions import ConnectionError, ReadTimeout
-
-from pathlib import Path
 
 from colored import fg, attr
 
