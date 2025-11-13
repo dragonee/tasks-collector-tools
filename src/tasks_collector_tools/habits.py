@@ -77,13 +77,16 @@ def get_habit_list(config, stderr, date=None):
             stderr.write("HTTP {}\n{}".format(r.status_code, r.text) + '\n')
 
 
-def get_keyword_list(config, stderr, all_keywords=False):
+def get_keyword_list(config, stderr, date=None, all_keywords=False):
     url = f"{config.url}/habit/keywords/mine/"
 
+    params = {}
+    if date is not None:
+        params['date'] = date.date().isoformat()
     if all_keywords:
-        url += "?all=true"
+        params['all'] = 'true'
 
-    r = requests.get(url, auth=HTTPBasicAuth(config.user, config.password))
+    r = requests.get(url, params=params, auth=HTTPBasicAuth(config.user, config.password))
 
     if r.ok:
         return [Keyword(**kw) for kw in r.json()]
@@ -92,6 +95,7 @@ def get_keyword_list(config, stderr, all_keywords=False):
             stderr.write(json.dumps(r.json(), indent=4, sort_keys=True) + '\n')
         except json.decoder.JSONDecodeError:
             stderr.write("HTTP {}\n{}".format(r.status_code, r.text) + '\n')
+        return []
 
 
 def print_habit_list(config, filename='-'):
@@ -201,7 +205,7 @@ def main():
         print_habit_list(config, arguments['--output'])
         return
 
-    keywords = get_keyword_list(config, sys.stderr, all_keywords=arguments['--all'])
+    keywords = get_keyword_list(config, sys.stderr, date=published, all_keywords=arguments['--all'])
 
     print("Tip: Use pipe separator (|) for multiple entries: y first entry | second entry | n third entry")
 
