@@ -30,7 +30,7 @@ from dataclasses import dataclass
 from datetime import datetime, timedelta
 from dateutil.parser import parse
 
-from .models import HabitWithTracked
+from .models import HabitWithTracked, Keyword
 
 
 def add_habit(config, text, published=None):
@@ -75,6 +75,27 @@ def get_habit_list(config, stderr, date=None):
             stderr.write(json.dumps(r.json(), indent=4, sort_keys=True) + '\n')
         except json.decoder.JSONDecodeError:
             stderr.write("HTTP {}\n{}".format(r.status_code, r.text) + '\n')
+
+
+def get_keyword_list(config, stderr, date=None, all_keywords=False):
+    url = f"{config.url}/habit/keywords/mine/"
+
+    params = {}
+    if date is not None:
+        params['date'] = date.date().isoformat()
+    if all_keywords:
+        params['all'] = 'true'
+
+    r = requests.get(url, params=params, auth=HTTPBasicAuth(config.user, config.password))
+
+    if r.ok:
+        return [Keyword(**kw) for kw in r.json()]
+    else:
+        try:
+            stderr.write(json.dumps(r.json(), indent=4, sort_keys=True) + '\n')
+        except json.decoder.JSONDecodeError:
+            stderr.write("HTTP {}\n{}".format(r.status_code, r.text) + '\n')
+        return []
 
 
 def print_habit_list(config, filename='-'):
@@ -183,31 +204,21 @@ def main():
     if arguments['--list']:
         print_habit_list(config, arguments['--output'])
         return
-    
-    raw_habits = get_habit_list(config, sys.stderr, date=published.date())
 
-    habits = map(lambda h: HabitWithTracked(**h), raw_habits)
-
-    def check(keyword, habit):
-        if arguments['--all']:
-            return True
-
-        return keyword not in config.ignore_habits and habit.today_tracked == 0
-
-    keywords = [keyword for habit in habits for keyword in habit.keywords if check(keyword, habit)]
+    keywords = get_keyword_list(config, sys.stderr, date=published, all_keywords=arguments['--all'])
 
     print("Tip: Use pipe separator (|) for multiple entries: y first entry | second entry | n third entry")
 
     try:
-        for keyword in keywords:
-            entries = ask_for(['y', 't'], ['n', 'f'], ['s'], prompt=f'#{keyword} {{words}}')
+        for kw in keywords:
+            entries = ask_for(['y', 't'], ['n', 'f'], ['s'], prompt=f'#{kw.keyword} {{words}}')
 
             if entries is None:
                 continue
 
             # Process all entries for this habit
             for answer, text in entries:
-                add_habit(config, format_line(keyword, answer, text), published=published)
+                add_habit(config, format_line(kw.keyword, answer, text), published=published)
     except (KeyboardInterrupt, EOFError):
         print()
         return
