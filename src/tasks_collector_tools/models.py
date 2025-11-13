@@ -26,6 +26,12 @@ class Habit(BaseModel):
 class HabitWithTracked(Habit):
     today_tracked: int
 
+
+class Keyword(BaseModel):
+    id: int
+    keyword: str
+    habit: Habit
+
 class JournalAdded(BaseEvent):
     resourcetype: Literal['JournalAdded']
     comment: str
