@@ -215,6 +215,7 @@ commands = {
     'reflect': 'reflect',
     'thread': change_thread,
     'stats': show_stats,
+    'discovery': 'discovery',
 }
 
 
