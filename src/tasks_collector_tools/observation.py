@@ -59,7 +59,8 @@ from colored import fg, attr
 
 from .config.tasks import TasksConfigFile
 
-from .utils import sanitize_fields, SHORT_TIMEOUT, ensure_directory_exists
+from .utils import sanitize_fields, SHORT_TIMEOUT, ensure_directory_exists, queue_failed_request, retry_failed_requests
+
 
 OBSERVATIONS_BACKUP_FILE = os.path.expanduser(os.path.join('~', '.tasks', 'observations_backup.json'))
 
@@ -331,7 +332,26 @@ def main():
 
     url = '{}/observation-api/'.format(config.url)
 
-    r = requests.post(url, json=payload, auth=HTTPBasicAuth(config.user, config.password))
+    try:
+        retry_failed_requests(metadata={
+            'auth': HTTPBasicAuth(config.user, config.password)
+        })
+    except Exception as e:
+        print(e)
+        print("Error: Failed to send queue")
+
+    try:
+        r = requests.post(url, json=payload, auth=HTTPBasicAuth(config.user, config.password))
+    except ConnectionError:
+        name = queue_failed_request(payload, metadata={
+            'url': url,
+        }, file_type="observation")
+
+        print("Error: Connection failed.")
+        print(f"Your update was saved at {name}.")
+        print("It will be sent next time you run this program.")
+
+        sys.exit(2)
 
     if r.ok:
         new_payload=r.json()
