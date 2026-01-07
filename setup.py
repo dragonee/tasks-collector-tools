@@ -28,6 +28,7 @@ setup(
             'eventdump = tasks_collector_tools.eventdump:main',
             'reflectiondump = tasks_collector_tools.reflectiondump:main',
             'reflect = tasks_collector_tools.reflect:main',
+            'sjournal = tasks_collector_tools.sjournal:main',
         ],
     }
 )
