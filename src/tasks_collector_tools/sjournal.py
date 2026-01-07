@@ -40,9 +40,18 @@ def main():
         print(f"Error running 'jira -l': {e}")
         sys.exit(1)
 
+    # Process jira output: prepend tasks with checkbox, skip Total line
+    processed_lines = []
+    for line in jira_output.splitlines():
+        if line.strip() and not line.startswith('Total'):
+            processed_lines.append(f"- [ ] {line}")
+        else:
+            processed_lines.append(line)
+    processed_output = '\n'.join(processed_lines)
+
     # Write jira output to a temporary file
     with tempfile.NamedTemporaryFile(mode='w', delete=False, suffix='.md') as f:
-        f.write(jira_output)
+        f.write(processed_output)
         tmpfile_path = f.name
 
     # Build journal command with the file
