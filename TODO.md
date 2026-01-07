@@ -45,3 +45,4 @@
   - Reflection Weekly is separated in areas (journal tags)
   - Each Area has own journal entry then, tagged accordignly
 - [ ] >Thread Task this and that
+- [ ] observation -u should search lastest work on the repo
