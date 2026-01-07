@@ -186,6 +186,15 @@ def main():
     if result.returncode != 0:
         sys.exit(1)
 
+    # Check if content is empty or unchanged from template
+    with open(tmpfile.name) as f:
+        edited_content = f.read()
+
+    if not edited_content.strip() or edited_content.strip() == template.strip():
+        print("No changes were made.")
+        os.unlink(tmpfile.name)
+        sys.exit(0)
+
     payload = {
         'comment': None,
         'thread': arguments['--thread'],
